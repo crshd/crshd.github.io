@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+				<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<meta name="viewport" content="width=device-width">
+		<meta name="author" content="Christian &ldquo;crshd&rdquo; Brassat">
+		<meta name="description" content="Yup, got that.">
+		<meta name="generator" content="mynt v0.3-dev">
+
+		<link rel="shortcut icon" href="/assets/images/favicon.ico" type="image/x-icon">
+
+		<link rel="alternate" href="/feed.xml" type="application/atom+xml">
+
+		<link rel="stylesheet" href="/assets/css/normalize.css" type="text/css">
+		<link rel="stylesheet" href="/assets/css/main.css" type="text/css">
+
+		<link rel="stylesheet" href="/assets/css/pygments.css" type="text/css">
+
+		<script src="/assets/js/vendor/modernizr-2.6.2-respond-1.1.0.min.js" type="text/javascript"></script>
+    <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+
+		
+
+		<title>Introducing Emacs Fetch &ndash; crshd</title>
+
+		
+	</head>
+
+	<body>
+		<!--[if lt IE 7]>
+			<p class="chromeframe">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> or <a href="http://www.google.com/chromeframe/?redirect=true">activate Google Chrome Frame</a> to improve your experience.</p>
+		<![endif]-->
+<a name="top"></a>
+		<div class="header-container">
+			<header class="wrapper clearfix">
+				<h1 class="title">
+					<!-- crshd &#10097;<span>&#10097; tail -f /dev/brain &raquo; /www</span> -->
+					crshd <i class="fa fa-quote-left"></i> Introducing Emacs Fetch
+				</h1>
+			</header>
+		</div>
+		<nav class="clearfix">
+			<!-- <h1 class="title">crshd</h1> -->
+			<ul>
+				<li><a href="/">Home</a></li>
+				<li><a href="/Colophon">Colophon</a></li>
+				<li>
+					<a href="#">Tags</a>
+					<ul class="tags">
+					
+						<li><a href="/Emacs/">Emacs</a></li>
+					
+						<li><a href="/Atom/">Atom</a></li>
+					
+						<li><a href="/Javascript/">Javascript</a></li>
+					
+						<li><a href="/mynt/">mynt</a></li>
+					
+						<li><a href="/OS-X/">OS X</a></li>
+					
+						<li><a href="/Security/">Security</a></li>
+					
+						<li><a href="/Torrent/">Torrent</a></li>
+					
+						<li><a href="/Userscript/">Userscript</a></li>
+					
+						<li><a href="/Version-Control/">Version Control</a></li>
+					
+						<li><a href="/webdev/">webdev</a></li>
+					
+					</ul>
+				</li>
+				<li><a href="/archives/">Archives</a></li>
+				<li><a href="/feed.xml">Feed</a></li>
+        <li id="to-top"><a href="#top">To Top <i class="fa fa-caret-square-o-up"></i></a></li>
+			</ul>
+		</nav>
+
+		<div class="main-container clearfix">
+			<div class="main wrapper">
+
+<article>
+	<h2 class="subheader">
+		Thursday, November 28, 2013
+		&ndash;
+		
+		<a href="/Emacs/">Emacs</a>
+		
+		
+		
+	</h2>
+	
+
+	<div class="content">
+			<p>Let&#39;s say you like to use fancy JS frameworks, like jQuery. A lot. Now, what do you do? You could go and download a fresh copy every time you need to use it, but that&#39;s so tedious. Or, you could save a copy somewhere in a convenient location on your harddrive, and get it from there. But then you&#39;d still have to go and grab the latest every time, or settle for using an older, out-of-date version.</p>
+<h2>The Solution</h2>
+<p>Somebody thought to himself: “What if there was a plugin that would automatically pull in the latest copy of a file, simply by typing a keyboard shortcut. It’ll perform a curl request to your specified URL (saved away for future use), and allow you to rest assured that, for all new projects, you’re using the latest copy of a particular asset.</p>
+
+<p>And then they made one.</p>
+<h2>The Second Dilemma, and Another Solution</h2>
+<p>This person was <a href="https://github.com/weslly">Weslly Honorato</a>, and he made a great plugin. Except it has one major flaw: It&#39;s for the wrong editor. The plugin I&#39;m talking about is <a href="https://github.com/weslly/Nettuts-Fetch">Nettuts+ Fetch</a>, and it is for Sublime Text. It&#39;s a great plugin for a nice editor, but I prefer Emacs. So what do I do? I bend the powers of Emacs to work in my favor, and write a plugin of my own.</p>
+<h2>Installation Instructions</h2>
+<p>This one is easy. Grab the latest source from github, and package-install-file that stuff.</p>
+<div class="code"><div><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="nv">$ </span>git clone https://github.com/crshd/fetch.el.git
+<span class="nv">$ </span>emacs --eval <span class="s1">&#39;(package-install-file &quot;fetch.el/fetch.el&quot;)&#39;</span>
+</pre></div>
+</td></tr></table></div></div>
+<p>I have submitted a request to get this package included in <a href="http://melpa.milkbox.net">MELPA</a>, so keep an eye on that to make the installation process even simpler.</p>
+
+<p><strong>Edit:</strong> It has since been included into the repo, so go ahead and get it from there.</p>
+<h2>Usage</h2>
+<p>This is where it gets a bit more complicated (but not much, I swear!). First of all, you have to add your favorite package to the association list (actually, this step is optional, more on that later). To do so, drop something like this in your <code>.emacs</code>:</p>
+<div class="code"><div><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="p">(</span><span class="nf">add-to-list</span> <span class="ss">&#39;fetch-package-alist</span>
+             <span class="o">&#39;</span><span class="p">(</span><span class="s">&quot;jquery&quot;</span> <span class="k">. </span><span class="s">&quot;http://code.jquery.com/jquery.min.js&quot;</span><span class="p">)</span> <span class="nv">t</span><span class="p">)</span>
+</pre></div>
+</td></tr></table></div></div>
+<p>Now, grabbing the latest release of jQuery is just an <code>M-x fetch-resource</code> away. <code>fetch-resource</code> will supply you with a list of packages you defined, for you to pick from.</p>
+
+<p>Alternatively, you don&#39;t even need to modify any alist, or touch your <code>.emacs</code>. You can call the function <code>M-x fetch-url</code>, and you get a chance to input the URL directly. This allows you to download and use any package quickly, without worrying about leaving the comfort of your editor. And you don&#39;t even need to put on pants!</p>
+<h3>But Wait, There&#39;s More!</h3>
+<p>Apart from just handling single files, you can grab entire <strong>archives</strong>! Take <a href="http://getbootstrap.com">Bootstrap</a> for example. You can add the download link to the alist as usual, and fetch.el will take care of everything, from downloading to unpacking the <code>.zip</code>.</p>
+
+	</div>
+</article>
+
+			</div>
+		</div>
+
+		<div class="clearfix"></div>
+
+		<div class="footer-container clearfix">
+			<footer class="wrapper clearfix">
+				<ul id="social">
+					 <li><a href="https://github.com/crshd"><i class="fa fa-github"></i></a></li>
+					 <li><a href="https://twitter.com/#!/cr4shd"><i class="fa fa-twitter"></i></a></li>
+					 <li><a href="http://www.last.fm/user/coffeefreeze"><i class="fa fa-music"></i></a></li>
+					 <li><a href="https://plus.google.com/108913776594552349551"><i class="fa fa-google-plus-square"></i></a></li>
+					
+					
+					 <li><a href="http://stackoverflow.com/users/2669928"><i class="fa fa-stack-overflow"></i></a></li>
+					 <li><a href="http://steamcommunity.com/profiles/76561198081615765"><i class="fa fa-gamepad"></i></a></li>
+					<li><a onClick="$('#bitcoin').show();" href="#bitcoin"><i class="fa fa-btc"></i></a></li>
+				</ul>
+				&copy; 2014 Christian &ldquo;crshd&rdquo; Brassat &ndash; 
+				powered by <a href="http://mynt.mirroredwhite.com/">mynt</a> &ndash;
+				hosted using <a href="http://pages.github.com/">GitHub Pages</a> &ndash;
+				<a href="https://github.com/crshd/io.source">source</a>
+				<div id="bitcoin">
+					<a href="bitcoin:18vnsb92iSSBM6GWw1BDjiTYPdo43VYtCf">
+						<img src="/assets/images/qr_coin.png" >
+					</a>
+					<p>18vnsb92iSSBM6GWw1BDjiTYPdo43VYtCf</p>
+				</div>
+			</footer>
+		</div>
+
+		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
+		<script>window.jQuery || document.write('<script src="/assets/js/vendor/jquery-1.10.1.min.js"><\/script>')</script>
+		<script>
+			$(document).ready(function() {
+				$('#bitcoin').hide();
+			});
+		</script>
+
+		<script src="/assets/js/main.js"></script>
+	</body>
+</html>

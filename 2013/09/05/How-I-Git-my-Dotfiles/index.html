@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+				<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<meta name="viewport" content="width=device-width">
+		<meta name="author" content="Christian &ldquo;crshd&rdquo; Brassat">
+		<meta name="description" content="Yup, got that.">
+		<meta name="generator" content="mynt v0.3.1">
+
+		<link rel="shortcut icon" href="/assets/images/favicon.ico" type="image/x-icon">
+
+		<link rel="alternate" href="/feed.xml" type="application/atom+xml">
+
+		<link rel="stylesheet" href="/assets/css/normalize.css" type="text/css">
+		<link rel="stylesheet" href="/assets/css/main.css" type="text/css">
+
+		<link rel="stylesheet" href="/assets/css/pygments.css" type="text/css">
+
+		<script src="/assets/js/vendor/modernizr-2.6.2-respond-1.1.0.min.js" type="text/javascript"></script>
+    <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+
+		
+
+		<title>How I Git my Dotfiles &ndash; crshd</title>
+
+		
+		<script src="//use.typekit.net/pnj4nyv.js"></script>
+		<script>try{Typekit.load();}catch(e){}</script>
+	</head>
+
+	<body>
+		<!--[if lt IE 7]>
+			<p class="chromeframe">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> or <a href="http://www.google.com/chromeframe/?redirect=true">activate Google Chrome Frame</a> to improve your experience.</p>
+		<![endif]-->
+<header class="wrapper clearfix">
+    <div class="container">
+        <div class="title"></div>
+        <nav>
+						<ul>
+								<li><a href="/">Home</a></li>
+								<li><a href="/Colophon">Colophon</a></li>
+								<li><a href="/feed.xml">Feed</a></li>
+						</ul>
+        </nav>
+    </div>
+</header>
+
+		<div class="main-container clearfix">
+
+<article class="single clearfix">
+	<div class="meta">
+		<p>&#123;&nbsp;Thu, 05. Sep 2013&nbsp;&#125;</p>
+		
+		<ul>
+			
+			<li><a href="/Version-Control/">Version Control</a></li>
+			
+		</ul>
+		
+	</div>
+	<div class="content">
+		<h1 class="title">How I Git my Dotfiles</h1>
+		<p>Dotfiles are every developer&rsquo;s and geek&rsquo;s pride and joy. Hours of work have been spent on them, and most important of all, they are constantly evolving. If you are like me, hardly a day goes by where you don&rsquo;t add a cool new piece of functionality that you just came up with, or found by looking through somebody else&rsquo;s configs.</p>
+
+<p>Now, having a byte-tuned system is great for workflow. But unfortunately, there are some side effects. If you lose your files, you are seriously crippled. Moving to a new system involves a lot of searching for files, copying and pasting them from one computer to another. And you&rsquo;re likely to be constantly bombarded with questions about how you did what.</p>
+<h2>The Solution</h2>
+<p>One possible solution to these problems: every developer&rsquo;s best friend, Github!</p>
+
+<p>Config files are all backed up, even if all of your hardware falls victim to a kraken, you&rsquo;ll still be able to clone your repository from Github once you have aquired new electron pushers. Moving to a new system is easy, just clone the repository, and you are good to go. And best of all, you can show off in front of your friends! The next time somebody asks you for some config file, just give them the link to the repository. No more uploading single files on some random pastebin, forgetting the link, uploading again, loosing track of what where and when, and having people find old, possibly broken, versions and yelling at you. What a relief&hellip;</p>
+<h2>How I did it. AKA: the strategy</h2>
+<p>Have I convinced you yet? Great, read on.</p>
+
+<p>If you want to post your configuration files on the Hub, there are some things to keep in mind:</p>
+
+<dl>
+    <dt>Location</dt>
+    <dd>
+        Unfortunately, developers still have not managed to decide on a single location to keep configuration files. Most of them are still dumped into hidden directories in your $HOME, some actually obey `$XDG_CONFIG_DIR` (which defaults to `~/.config`), and other only act like they do, but their location is hardcoded to `~/.config`, instead of reading the environment variable.
+    </dd>
+    <dt>Passwords</dt>
+    <dd>
+        If you are putting your configuration files online for the world to see, you should **really** make sure to remove all your passwords, api keys and other sensitive data before pushing it to github. Ideally, they should be encrypted and stored somewhere else, but sometimes you just cannot get around saving them as plaintext in some file somewhere.
+    </dd>
+    <dt>Clutter</dt>
+    <dd>
+        Please, for the love of God, make sure you keep your files organized. No useless files in your repo!
+    </dd>
+</dl>
+
+<p>Below I will show you how I got around these things.</p>
+<h2>Location</h2>
+<p>So, you want to git your configs, but they are scattered all over the place. You can&rsquo;t just stuff your entire <code>$HOME</code> into a repository - this is not going to work out. I like to keep files organized anyways, so this was the perfect excuse for me to go all OCD on my file system.</p>
+<h3>XDG Base Directory Specification</h3>
+<p>freedesktop.org came up with a beautiful solution to this mess: the <a href="http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html">XDG Base Directory Specification</a>. Every piece of software that follows this specification will put it&rsquo;s config file wherever the environment variable <code>$XDG_CONFIG_HOME</code> points to. I&rsquo;ve set mine to <code>~/etc</code> (because <code>/etc</code>), but it&rsquo;s really up to you. So make sure to set it in your shell configuration. And put that shell config in <code>$XDG_CONFIG_HOME</code>. Configception.</p>
+<h3>Command Line Flags</h3>
+<p>Unfortunately, a lot of software still does not follow the specifications, in which case you&rsquo;ll have to do some manual work. Luckily, <em>most</em> software allows you to specify an alternative configuration file via command-line options, or sometimes even environment variables. So go RTFM and modify your shell rc accordingly (just set aliases).</p>
+<h3>Symlinks</h3>
+<p>Some (very few, though) programs do not allow you to change the location of their configuration file. At least not without modifying the source (I&rsquo;m looking at you, Emacs and Xmonad). In this case, you have three options: patch the source and recompile, bug the developers, or use symlinks. While it clutters my <code>$HOME</code> again, I decided to go for the latter solution. I do have subdirectories for both Emacs and Xmonad in my <code>~/etc</code>, which I just symlinked to <code>~/.emacs.d</code> and <code>~/.xmonad</code> respectively.</p>
+<h2>Sensitive Data</h2>
+<p>So yeah, them passwords. Again, I have three different methods how you can avoid giving people the account details of your online banking account.</p>
+<h3>Git Filters</h3>
+<p>Git has filters that can be applied to your code before it gets commited. <a href="http://www.imagination-land.org/posts/2013-01-21-manage-you-critical-configuration-files-with-git.html">Marc-Antoine Perennou</a> did a nice write-up about this, so I&rsquo;m not going to go into too much detail here, but you can clean your passwords with</p>
+<div class="code"><div><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5</pre></div></td><td class="code"><div class="highlight"><pre><span class="nv">$ </span>git config filter.password.clean <span class="s2">&quot;sed -e &#39;s/mypassword/@PASSWORD@/&#39; -e &#39;s/anotherpassword/@PASSWORD2@/&#39;&quot;</span>
+<span class="nv">$ </span>git config filter.password.smudge <span class="s2">&quot;sed -e &#39;s/@PASSWORD@/mypassword/&#39; -e &#39;s/@PASSWORD2@/anotherpassword/&#39;&quot;</span>
+<span class="nv">$ </span>cat &gt; .git/info/attributes <span class="s">&lt;&lt; EOF</span>
+<span class="s">myconf.conf filter=password</span>
+<span class="s">EOF</span>
+</pre></div>
+</td></tr></table></div></div>
+<p>This is obviously a very simple example, and will only work if you use the same password everywhere. So you&rsquo;d need to add a filter for every different password you use. But since it&rsquo;s just calling sed, you have the possibility to go completely crazy with regexes, if you&rsquo;re one of those people.</p>
+<h3>.gitignore</h3>
+<p>Another possibitly would be to use <code>.gitignore</code>, and ignore all the files that contain sensitive data. For example, I&rsquo;m ignoring <code>~/etc/fb-client/apikey</code>, which basically contains nothing more than my API key for <a href="http://paste.xinu.at">paste.xinu.at</a>. Not much more to say about that.</p>
+<h3>External Files</h3>
+<p>Depending on the type of configuration, you might be able to read your passwords from an external file, which you could keep outside your repo. Or which is .gitignored. Since the methods differ for each application, there&rsquo;s no example here. Go cry about it.</p>
+<h2>Clutter</h2>
+<p>There&rsquo;s really not a lot to write about this. Please make sure you keep your stuff organized. Everything in its subdirectory, don&rsquo;t include useless files, like auto-generated stuff or editor backups. Just double-check everything before calling git add on it, and set your ignores accordingly.</p>
+
+	</div>
+	
+</article>
+
+		</div>
+
+		<div class="clearfix"></div>
+
+<footer class="wrapper clearfix">
+    <div>
+        <ul id="social">
+						 <li><a href="https://github.com/crshd"><i class="fa fa-github"></i></a></li>
+						 <li><a href="https://twitter.com/#!/cr4shd"><i class="fa fa-twitter"></i></a></li>
+						 <li><a href="http://www.last.fm/user/coffeefreeze"><i class="fa fa-music"></i></a></li>
+						 <li><a href="https://plus.google.com/108913776594552349551"><i class="fa fa-google-plus-square"></i></a></li>
+						
+						
+						 <li><a href="http://stackoverflow.com/users/2669928"><i class="fa fa-stack-overflow"></i></a></li>
+						 <li><a href="http://steamcommunity.com/profiles/76561198081615765"><i class="fa fa-gamepad"></i></a></li>
+						 <li><a href="https://coindataflow.com/en"><i class="fa fa-link"></i></a></li>
+        </ul>
+        <p>
+            &copy; 2015 Christian &ldquo;crshd&rdquo; Brassat &ndash; 
+            powered by <a href="http://mynt.mirroredwhite.com/">mynt</a> &ndash;
+            hosted using <a href="http://pages.github.com/">GitHub Pages</a> &ndash;
+            <a href="https://github.com/crshd/io.source">source</a>
+        </p>
+    </div>
+</footer>
+
+		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
+		<script>window.jQuery || document.write('<script src="/assets/js/vendor/jquery-1.10.1.min.js"><\/script>')</script>
+		<script>
+			$(document).ready(function() {
+				$('#bitcoin').hide();
+			});
+		</script>
+
+		<script src="/assets/js/main.js"></script>
+	</body>
+</html>

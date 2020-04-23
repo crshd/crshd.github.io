@@ -1,0 +1,666 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <title>crshd</title>
+    <subtitle>tail -f /dev/brain &raquo; /www</subtitle>
+    <link rel="alternate" href="http://crshd.github.io/" />
+    <link rel="self" href="http://crshd.github.io/feed.xml" type="application/atom+xml" />
+    <id>http://crshd.github.io/</id>
+    <updated>2015-07-26T09:46:14Z</updated>
+    
+    <author>
+        <name>Christian &ldquo;crshd&rdquo; Brassat</name>
+        <email>trashbukkit@gmail.com</email>
+        <uri>http://crshd.github.io/</uri>
+    </author>
+    
+    
+        <entry>
+            <title>Changing Firefox Dev Edition Menubar Name</title>
+            <link rel="alternate" href="http://crshd.github.io/2015/03/12/Changing-Firefox-Menu-Bar-Name/" type="text/html" />
+            <id>http://crshd.github.io/2015/03/12/Changing-Firefox-Menu-Bar-Name/</id>
+            <updated>2015-03-12T07:43:00Z</updated>
+            
+            <summary type="html">If you&amp;rsquo;re as crazy as me, you&amp;rsquo;re using &lt;a href=&#34;https://www.mozilla.org/en-US/firefox/developer/&#34; title=&#34;If you&amp;#39;re not crazy, you still should. Get it here!&#34;&gt;Firefox Developer Edition&lt;/a&gt; as your main, everyday browser. There&amp;rsquo;s just something so&amp;hellip; &lt;strong&gt;satisfying&lt;/strong&gt; about using alpha-grade software.</summary>
+            <content type="html">&lt;p&gt;If you&amp;rsquo;re as crazy as me, you&amp;rsquo;re using &lt;a href=&#34;https://www.mozilla.org/en-US/firefox/developer/&#34; title=&#34;If you&amp;#39;re not crazy, you still should. Get it here!&#34;&gt;Firefox Developer Edition&lt;/a&gt; as your main, everyday browser. There&amp;rsquo;s just something so&amp;hellip; &lt;strong&gt;satisfying&lt;/strong&gt; about using alpha-grade software.&lt;/p&gt;
+
+&lt;p&gt;But there&amp;rsquo;s bad things, too. One thing that always bothered after Mozilla&amp;rsquo;s switch from &amp;ldquo;Aurora&amp;rdquo; to &amp;ldquo;Firefox Developer Edition&amp;rdquo; was the name. Now, I couldn&amp;rsquo;t care less what they want to call it. I can rename the appbundle to whatever I want to make it show up under that name in Alfred and the dock (&amp;ldquo;Firefox DE&amp;rdquo; in this case). But having the full name there wasn&amp;rsquo;t what really bothered me.&lt;/p&gt;
+
+&lt;p&gt;What bothered me was the title string in the menubar. Seriously, &amp;ldquo;FirefoxDeveloperEdition&amp;rdquo; takes up way too much space. I&amp;rsquo;m using a 13&amp;quot; MBP, so screen estate is at a premium here. WTH was Mozilla thinking? Previously it was just &amp;ldquo;Aurora&amp;rdquo;, which is 100% fine. Six characters and I know what it is.&lt;/p&gt;
+
+&lt;p&gt;To cut a long story short, this is OS X we&amp;rsquo;re talking about. So it&amp;rsquo;s simply a matter of changing the string. The name displayed in the menubar is the app&amp;rsquo;s &lt;em&gt;CFBundleName&lt;/em&gt;, and in Firefox&amp;#39; case it&amp;rsquo;s found under &lt;code&gt;/Applications/FirefoxDeveloperEdition/Contents/Resources/en.lproj/InfoPlist.strings&lt;/code&gt;. So, rename it to &amp;ldquo;Firefox DE&amp;rdquo;, &amp;ldquo;Aurora&amp;rdquo; (for old times sake) or &amp;ldquo;FlyingRainbowUnicornDicks&amp;rdquo; (tbh, not that great of an idea. At least not if saving space is what you&amp;rsquo;re after).&lt;/p&gt;
+</content>
+        </entry>
+    
+        <entry>
+            <title>DIY Nginx + ruTorrent Seedbox on Wheezy (Part 1)</title>
+            <link rel="alternate" href="http://crshd.github.io/2014/12/16/ruTorrent-Seedbox-on-Debian/" type="text/html" />
+            <id>http://crshd.github.io/2014/12/16/ruTorrent-Seedbox-on-Debian/</id>
+            <updated>2014-12-16T14:06:00Z</updated>
+            
+            <summary type="html">Get some coffee/tea/coke/drink of choice and some snacks. This&amp;rsquo;ll take a while. We&amp;rsquo;ll be taking a barebone stock Debian system and set up a killer seedbox all from scratch, using rTorrent/libTorrent, ruTorrent and Nginx with SSL.</summary>
+            <content type="html">&lt;p&gt;Get some coffee/tea/coke/drink of choice and some snacks. This&amp;rsquo;ll take a while. We&amp;rsquo;ll be taking a barebone stock Debian system and set up a killer seedbox all from scratch, using rTorrent/libTorrent, ruTorrent and Nginx with SSL.&lt;/p&gt;
+&lt;h1&gt;Install Nginx and PHP&lt;/h1&gt;
+&lt;p&gt;Most of the guides you&amp;rsquo;ll find on ruTorrent use Apache as the server, because - well, Apache. We&amp;rsquo;ll be using Nginx instead, because - well, Nginx. So we need to install it.&lt;/p&gt;
+&lt;pre&gt;&lt;code data-lang=&#34;console&#34;&gt;apt-get install nginx php5-fpm
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;I like to keep my my server files in &lt;code&gt;/var/www&lt;/code&gt;. So we need to tell PHP where it&amp;rsquo;s at. Open &lt;code&gt;/etc/php5/fpm/php.ini&lt;/code&gt; and change &lt;code&gt;open_basedir&lt;/code&gt; to &lt;code&gt;/var/www&lt;/code&gt;.&lt;/p&gt;
+&lt;h1&gt;Create User&lt;/h1&gt;
+&lt;p&gt;We need a user to run rTorrent. You can name it whatever you want, but if you chose something different, remember to adjust the configs in the rest of this article.&lt;/p&gt;
+
+&lt;p&gt;We&amp;rsquo;ll also be creating a common group for this user and Nginx.&lt;/p&gt;
+&lt;pre&gt;&lt;code data-lang=&#34;console&#34;&gt;groupadd rutorrent
+useradd -G rutorrent user
+usermod -a -G rutorrent www-data
+&lt;/code&gt;&lt;/pre&gt;&lt;h1&gt;Setting up SSL&lt;/h1&gt;
+&lt;p&gt;Security doesn&amp;rsquo;t hurt, so while we&amp;rsquo;re at it, we might as well set up SSL for Nginx. This is for personal use (you don&amp;rsquo;t really plan to share your Seedbox with others, do you?), so a self-signed cert should be good enough for now. If you feel like you want to get it signed somewhere else, go ahead and send me you money instead.&lt;/p&gt;
+&lt;pre&gt;&lt;code data-lang=&#34;console&#34;&gt;mkdir -p &amp;#x2F;etc&amp;#x2F;nginx&amp;#x2F;ssl
+cd &amp;#x2F;etc&amp;#x2F;nginx&amp;#x2F;ssl
+openssl genrsa -des3 -out server.key 2048
+openssl req -new -key server.key -out server.csr
+mv server.key server.key.orig
+openssl rsa -in server.key.orig -out server.key
+openssl x509 -req -days 365 -in server.csr -signkey server.key -out server.crt
+&lt;/code&gt;&lt;/pre&gt;&lt;h1&gt;Working Dir&lt;/h1&gt;
+&lt;p&gt;I&amp;rsquo;ll try to keep things clean, that&amp;rsquo;s why I&amp;rsquo;m creating a temporary directory to work in.&lt;/p&gt;
+&lt;pre&gt;&lt;code data-lang=&#34;console&#34;&gt;mkdir ~&amp;#x2F;workdir; cd ~&amp;#x2F;workdir
+&lt;/code&gt;&lt;/pre&gt;&lt;h1&gt;Install XMLRPC-C&lt;/h1&gt;
+&lt;p&gt;rTorrent and Nginx need this to be able to communicate with each other.&lt;/p&gt;
+&lt;pre&gt;&lt;code data-lang=&#34;console&#34;&gt;svn checkout http:&amp;#x2F;&amp;#x2F;svn.code.sf.net&amp;#x2F;p&amp;#x2F;xmlrpc-c&amp;#x2F;code&amp;#x2F;advanced xmlrpc-c
+cd xmlrpc-c
+.&amp;#x2F;configure --disable-cplusplus
+make; make install
+&lt;/code&gt;&lt;/pre&gt;&lt;h1&gt;Install libTorrent&lt;/h1&gt;
+&lt;p&gt;Clone and compile, nothing special.&lt;/p&gt;
+&lt;pre&gt;&lt;code data-lang=&#34;console&#34;&gt;cd ~&amp;#x2F;workdir
+git clone https:&amp;#x2F;&amp;#x2F;github.com&amp;#x2F;rakshasa&amp;#x2F;libtorrent.git
+cd libtorrent
+.&amp;#x2F;autogen.sh
+.&amp;#x2F;configure
+make; make install
+&lt;/code&gt;&lt;/pre&gt;&lt;h1&gt;Install rTorrent&lt;/h1&gt;
+&lt;p&gt;Again - clone and compile. We need to make sure we configure &lt;code&gt;--with-xmlrpc-c&lt;/code&gt;.&lt;/p&gt;
+&lt;pre&gt;&lt;code data-lang=&#34;console&#34;&gt;cd ~&amp;#x2F;workdir
+git cone https:&amp;#x2F;&amp;#x2F;github.com&amp;#x2F;rakshasa&amp;#x2F;rtorrent.git
+cd rtorrent
+.&amp;#x2F;autogen.sh
+.&amp;#x2F;configure --with-xmlrpc-c
+make; make install
+ldconfig
+&lt;/code&gt;&lt;/pre&gt;&lt;h1&gt;Install and configure ruTorrent&lt;/h1&gt;
+&lt;p&gt;This one is rather easy. We just need to clone the git repo into &lt;code&gt;/var/www&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code data-lang=&#34;console&#34;&gt;mkdir -p &amp;#x2F;var&amp;#x2F;www; cd &amp;#x2F;var&amp;#x2F;www
+git clone https:&amp;#x2F;&amp;#x2F;github.com&amp;#x2F;Novik&amp;#x2F;ruTorrent.git
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;ruTorrent doesn&amp;rsquo;t need a lot of configuration. Let&amp;rsquo;s take a look at &lt;code&gt;/var/www/ruTorrent/conf/config.php&lt;/code&gt;.&lt;/p&gt;
+&lt;pre&gt;&lt;code data-lang=&#34;php&#34;&gt;$topDirectory = &amp;quot;&amp;#x2F;home&amp;#x2F;user&amp;quot;
+$scgi_port = 0;
+$scgi_host = &amp;quot;unix:&amp;#x2F;&amp;#x2F;&amp;#x2F;home&amp;#x2F;user&amp;#x2F;.rtorrent-scgi.sock&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;&lt;h1&gt;Set up a Server Block&lt;/h1&gt;
+&lt;p&gt;Nginx has &amp;ldquo;Server Blocks&amp;rdquo; for the individual apps running on the server. Let&amp;rsquo;s create one for ruTorrent.&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;/etc/nginx/sites-available/rutorrent&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code data-lang=&#34;nginx&#34;&gt;server {
+  listen 443 ssl;
+  server_name yavin.trashbukk.it trashbukk.it localhost;
+
+  root &amp;#x2F;var&amp;#x2F;www&amp;#x2F;ruTorrent;
+  index index.html index.htm index.php;
+
+  ssl_certificate &amp;#x2F;etc&amp;#x2F;nginx&amp;#x2F;ssl&amp;#x2F;server.crt;
+  ssl_certificate_key &amp;#x2F;etc&amp;#x2F;nginx&amp;#x2F;ssl&amp;#x2F;server.key;
+
+  auth_basic &amp;quot;Restricted&amp;quot;;
+  auth_basic_user_file &amp;#x2F;etc&amp;#x2F;nginx&amp;#x2F;.htpasswd;
+
+  location &amp;#x2F; {
+    try_files $uri $uri&amp;#x2F; =404;
+  }
+
+  location &amp;#x2F;RPC2 {
+    include scgi_params;
+    scgi_pass unix:&amp;#x2F;home&amp;#x2F;user&amp;#x2F;.rtorrent-scgi.sock;
+  }
+
+  location ~ \.php$ {
+    fastcgi_split_path_info ^(.+\.php)(&amp;#x2F;.+)$;
+    fastcgi_pass unix:&amp;#x2F;var&amp;#x2F;run&amp;#x2F;php5-fpm.sock;
+    fastcgi_index index.php;
+    include fastcgi_params;
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;We also want it password-protected. We wouldn&amp;rsquo;t want the world to see all your pr0n.&lt;/p&gt;
+&lt;pre&gt;&lt;code data-lang=&#34;console&#34;&gt;apt-get install apache2-utils
+htpasswd -c &amp;#x2F;etc&amp;#x2F;nginx&amp;#x2F;.htpasswd user
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Aaand reload&lt;/p&gt;
+&lt;pre&gt;&lt;code data-lang=&#34;console&#34;&gt;service nginx reload
+&lt;/code&gt;&lt;/pre&gt;&lt;h1&gt;Install some needed packages for ruTorrent plugins&lt;/h1&gt;
+&lt;p&gt;Some of ruTorrent&amp;rsquo;s plugins need some additional binaries. This seems like a good time to install them.&lt;/p&gt;
+&lt;pre&gt;&lt;code data-lang=&#34;console&#34;&gt;apt-get install php5-cli ffmpeg mediainfo
+&lt;/code&gt;&lt;/pre&gt;&lt;h1&gt;Get rtorrent to start at boot&lt;/h1&gt;
+&lt;p&gt;Nginx runs on boot by default, so no issue there. But we want rtorrent to start, too. We&amp;rsquo;re lazy like that.&lt;/p&gt;
+
+&lt;p&gt;Many people will tell you to write an init script for this, but IMO that&amp;rsquo;s overkill. I prefer to use &lt;code&gt;/etc/rc.local&lt;/code&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code data-lang=&#34;sh&#34;&gt;start-stop-daemon --start --chuid seed --name rtorrent --exec &amp;#x2F;usr&amp;#x2F;bin&amp;#x2F;screen -- -fa -d -m &amp;#x2F;usr&amp;#x2F;local&amp;#x2F;bin&amp;#x2F;rtorrent
+&lt;/code&gt;&lt;/pre&gt;&lt;h1&gt;That&amp;rsquo;s it!&lt;/h1&gt;
+&lt;p&gt;Try it, reboot your server and see everything running!&lt;/p&gt;
+</content>
+        </entry>
+    
+        <entry>
+            <title>Create a Windows Install USB on OS X Yosemite</title>
+            <link rel="alternate" href="http://crshd.github.io/2014/11/16/Creating-Windows-USB-on-OSX/" type="text/html" />
+            <id>http://crshd.github.io/2014/11/16/Creating-Windows-USB-on-OSX/</id>
+            <updated>2014-11-16T12:54:00Z</updated>
+            
+            <summary type="html">Microsoft would have you believe that you need a computer running Windows 7 or later to create a USB install disk for Windows. Unfortunately, this makes no fucking sense at all - if I&amp;rsquo;m already running Windows on my machine, what do I need an installer for? Fortunately, not everything Microsoft tells you is true.</summary>
+            <content type="html">&lt;p&gt;Microsoft would have you believe that you need a computer running Windows 7 or later to create a USB install disk for Windows. Unfortunately, this makes no fucking sense at all - if I&amp;rsquo;m already running Windows on my machine, what do I need an installer for? Fortunately, not everything Microsoft tells you is true.&lt;/p&gt;
+
+&lt;p&gt;Creating a Windows installer from OS X is actually quite simple - Boot Camp Assistant can do it for you. If you&amp;rsquo;re on a newer machine without an optical drive, you probably have an option that says &amp;ldquo;Create a Windows 7 or later version install disk&amp;rdquo;. Click that and point it to your ISO image. Done.&lt;/p&gt;
+
+&lt;p&gt;If you&amp;rsquo;re on an older machine (like my Hoth), you won&amp;rsquo;t find this option. Don&amp;rsquo;t Panic! Hacking Boot Camp Assistant into small bits and reassembling it will do the trick.&lt;/p&gt;
+
+&lt;p&gt;First of all, we&amp;rsquo;ll modify BCA&amp;rsquo;s Info.plist. It&amp;rsquo;s at &lt;code&gt;/Applications/Utilities/Boot Camp Assistant.app/Contents/Info.plist&lt;/code&gt;. Open it in your favorite text editor (Note: this requires elevated privileges). Once we&amp;rsquo;re there, we&amp;rsquo;ll tell it which machines can create USB disks. Look for the key &lt;code&gt;PreUSBBootSupportedModels&lt;/code&gt;. Change it to &lt;code&gt;USBBootSupportedModels&lt;/code&gt;. Makes sense, right? Save.&lt;/p&gt;
+
+&lt;p&gt;Then, we&amp;rsquo;ll need to resign BCA, otherwise it will refuse to run. For this, we&amp;rsquo;ll need the Xcode command line tools installed. Then it&amp;rsquo;s as easy as&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;sudo cosign -fs - &amp;#x2F;Applications&amp;#x2F;Utilities&amp;#x2F;Boot\ Camp\ Assistant.app
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now restart BCA, and you&amp;rsquo;ll find the option you were looking for.&lt;/p&gt;
+</content>
+        </entry>
+    
+        <entry>
+            <title>The State of using IDs and Classes for your JavaScript in HTML5</title>
+            <link rel="alternate" href="http://crshd.github.io/2014/10/08/IDs-Classes-JS-HTML5/" type="text/html" />
+            <id>http://crshd.github.io/2014/10/08/IDs-Classes-JS-HTML5/</id>
+            <updated>2014-10-08T02:51:00Z</updated>
+            
+            <summary type="html">Don&amp;rsquo;t. Do. It.</summary>
+            <content type="html">&lt;p&gt;Don&amp;rsquo;t. Do. It.&lt;/p&gt;
+
+&lt;p&gt;We&amp;rsquo;ve been doing it for what seems like ages. We&amp;rsquo;re hooking our JavaScript onto custom classes and IDs in our HTML. Classes and IDs solely created for this one purposes. Even the guys over at &lt;a href=&#34;http://jquery.com&#34; title=&#34;jQuery&#34;&gt;jQuery&lt;/a&gt; (which we all use - or at least have at one point) are doing it. And it&amp;rsquo;s starting to drive me insane.&lt;/p&gt;
+
+&lt;p&gt;We have enough custom classes as it is, especially now with Bootstrap and Co., which is bad enough&lt;sup id=&#34;fnref1&#34; class=&#34;footnotes-ref&#34;&gt;&lt;a href=&#34;#fn1&#34; rel=&#34;footnote&#34;&gt;1&lt;/a&gt;&lt;/sup&gt; in and of itself.&lt;/p&gt;
+&lt;pre&gt;&lt;code data-lang=&#34;html&#34;&gt;&amp;lt;div class=&amp;quot;col-xs-12 col-sm-3 col-lg-1 sidebar hide-on-hover&amp;quot;&amp;gt;...&amp;lt;&amp;#x2F;div&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;I mean - seriously? I can&amp;rsquo;t see my content between all of that markup. And where are the classes I actually care about?&lt;/p&gt;
+&lt;div class=&#34;footnotes&#34;&gt;&lt;ol&gt;&lt;li id=&#34;fn1&#34; class=&#34;footnotes-def&#34;&gt;&lt;p&gt;&lt;a href=&#34;http://ruby.bvision.com/blog/please-stop-embedding-bootstrap-classes-in-your-html&#34;&gt;&amp;ldquo;Please stop embedding Bootstrap classes in your HTML!&amp;rdquo;&lt;/a&gt;&amp;nbsp;&lt;a href=&#34;#fnref1&#34; rev=&#34;footnote&#34;&gt;↩&lt;/a&gt;&lt;/p&gt;
+&lt;/li&gt;&lt;/ol&gt;&lt;/div&gt;</content>
+        </entry>
+    
+        <entry>
+            <title>Auto-Login to Deluge WebUI</title>
+            <link rel="alternate" href="http://crshd.github.io/2014/07/23/Autologin-Deluge/" type="text/html" />
+            <id>http://crshd.github.io/2014/07/23/Autologin-Deluge/</id>
+            <updated>2014-07-23T10:01:00Z</updated>
+            
+            <summary type="html">I&amp;rsquo;m lazy. Who isn&amp;rsquo;t? So lazy in fact that I don&amp;rsquo;t feel like entering the password to Deluge&amp;rsquo;s WebUI every time I want to access it.</summary>
+            <content type="html">&lt;p&gt;I&amp;rsquo;m lazy. Who isn&amp;rsquo;t? So lazy in fact that I don&amp;rsquo;t feel like entering the password to Deluge&amp;rsquo;s WebUI every time I want to access it.&lt;/p&gt;
+&lt;pre&gt;&lt;code data-lang=&#34;javascript&#34;&gt;&amp;#x2F;&amp;#x2F; ==UserScript==
+&amp;#x2F;&amp;#x2F; @name           Deluge Login
+&amp;#x2F;&amp;#x2F; @description    Automatically log in to Deluge WebUI
+&amp;#x2F;&amp;#x2F; @include        http*:&amp;#x2F;&amp;#x2F;url.of.seedbox&amp;#x2F;*
+&amp;#x2F;&amp;#x2F; @version        0.1
+&amp;#x2F;&amp;#x2F; @namespace      it.trashbukk.userscripts
+&amp;#x2F;&amp;#x2F; ==&amp;#x2F;UserScript==
+
+setTimeout(function(){
+    var pass = &amp;#x27;NotMyPassword&amp;#x27;;
+    document.getElementById(&amp;#x27;_password&amp;#x27;).value = pass;
+    document.getElementById(&amp;#x27;ext-comp-1149&amp;#x27;).click();
+}, 2000);
+&lt;/code&gt;&lt;/pre&gt;</content>
+        </entry>
+    
+        <entry>
+            <title>Inserting Blank Lines between HTML Tags in Atom</title>
+            <link rel="alternate" href="http://crshd.github.io/2014/03/20/Inserting-Blank-Lines-Atom/" type="text/html" />
+            <id>http://crshd.github.io/2014/03/20/Inserting-Blank-Lines-Atom/</id>
+            <updated>2014-03-20T09:50:00Z</updated>
+            
+            <summary type="html">I&amp;rsquo;ve done &lt;a href=&#34;http://crshd.github.io/2013/12/03/Inserting-Blank-Lines-between-HTML-Tags-in-Emacs/&#34;&gt;this exact thing before for Emacs&lt;/a&gt;. This is basically a copy and paste of that post, with updated code.</summary>
+            <content type="html">&lt;p&gt;I&amp;rsquo;ve done &lt;a href=&#34;http://crshd.github.io/2013/12/03/Inserting-Blank-Lines-between-HTML-Tags-in-Emacs/&#34;&gt;this exact thing before for Emacs&lt;/a&gt;. This is basically a copy and paste of that post, with updated code.&lt;/p&gt;
+
+&lt;p&gt;I code HTML in Atom, and &lt;a href=&#34;https://github.com/atom/emmet&#34;&gt;Emmet&lt;/a&gt; makes it a breeze. Although, there was one thing that bugged me. When I expand &lt;code&gt;div&lt;/code&gt;, Emmet gives me&lt;/p&gt;
+&lt;pre&gt;&lt;code data-lang=&#34;html&#34;&gt;&amp;lt;div&amp;gt;|&amp;lt;&amp;#x2F;div&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;with the cursor stuck right there in the middle. I (and I think I&amp;rsquo;m not alone with that) would prefer&lt;/p&gt;
+&lt;pre&gt;&lt;code data-lang=&#34;html&#34;&gt;&amp;lt;div&amp;gt;
+    |
+&amp;lt;&amp;#x2F;div&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Getting from the one thing to the other is a mess of inserting newlines and moving the point, and indenting.&lt;/p&gt;
+&lt;h2&gt;Don&amp;rsquo;t Fear, atom is here!&lt;/h2&gt;
+&lt;p&gt;Until now. This being Atom, there&amp;rsquo;s a way around this. With the following snippet in my config, everything gets expanded and indented properly when I hit &lt;code&gt;RET&lt;/code&gt; between an opening and closing tag.&lt;/p&gt;
+&lt;pre&gt;&lt;code data-lang=&#34;coffeescript&#34;&gt;atom.workspaceView.eachEditorView (editorView) -&amp;gt;
+  editor = editorView.getEditor()
+  _.adviseBefore editor, &amp;quot;insertNewline&amp;quot;, ((_this) -&amp;gt;
+    (text) -&amp;gt;
+      cursorBufferPosition = undefined
+      previousCharacter = undefined
+      nextCharacter = undefined
+      return true  if editor.hasMultipleCursors()
+      return  unless editor.getSelection().isEmpty()
+      cursorBufferPosition = editor.getCursorBufferPosition()
+      previousCharacter = editor.getTextInBufferRange([
+        cursorBufferPosition.add([ 0, -1 ])
+        cursorBufferPosition
+      ])
+      nextCharacter = editor.getTextInBufferRange([
+        cursorBufferPosition
+        cursorBufferPosition.add([ 0, 1 ])
+      ])
+      if previousCharacter is &amp;quot;&amp;gt;&amp;quot; and nextCharacter is &amp;quot;&amp;lt;&amp;quot;
+        editor.transact -&amp;gt;
+          cursorRow = undefined
+          editor.insertText &amp;quot;\n\n&amp;quot;
+          editor.moveCursorUp()
+          cursorRow = editor.getCursorBufferPosition().row
+          editor.autoIndentBufferRows cursorRow, cursorRow + 1
+
+        false
+  )(this)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This snippet mostly a copy of the code found in the &lt;a href=&#34;https://github.com/atom/bracket-matcher&#34;&gt;bracket-matcher&lt;/a&gt; package, translated to coffeescript.&lt;/p&gt;
+</content>
+        </entry>
+    
+        <entry>
+            <title>Using the MBP&#39;s Light Sensor to Change Emacs Theme</title>
+            <link rel="alternate" href="http://crshd.github.io/2014/02/26/Changing-Emacs-Theme-Ambient-Light/" type="text/html" />
+            <id>http://crshd.github.io/2014/02/26/Changing-Emacs-Theme-Ambient-Light/</id>
+            <updated>2014-02-26T05:05:00Z</updated>
+            
+            <summary type="html">I was thinking about a good way to switch between the light and dark versions of &lt;a href=&#34;http://ethanschoonover.com/solarized&#34;&gt;Solarized&lt;/a&gt; today. Of course I can do it manually, but that&amp;rsquo;s tedious, and I know I&amp;rsquo;ll never do it. I could make it switch based on the time of day, but that&amp;rsquo;s boring, and anybody can do that.</summary>
+            <content type="html">&lt;p&gt;I was thinking about a good way to switch between the light and dark versions of &lt;a href=&#34;http://ethanschoonover.com/solarized&#34;&gt;Solarized&lt;/a&gt; today. Of course I can do it manually, but that&amp;rsquo;s tedious, and I know I&amp;rsquo;ll never do it. I could make it switch based on the time of day, but that&amp;rsquo;s boring, and anybody can do that.&lt;/p&gt;
+
+&lt;p&gt;Then the screen on my MacBook started dimming because my head once again got between the ceiling light and the ambient light sensor. And I had an idea. What if I can get a reading from the sensor, and use that to make Emacs switch? So I got to work.&lt;/p&gt;
+
+&lt;p&gt;We&amp;rsquo;ll need a couple of things. First of all, we need to get a reading from the sensor. Under Linux, the value is accessible via &lt;code&gt;/sys&lt;/code&gt;, but for those of us actually running OS X on our MBPs, this doesn&amp;rsquo;t work. I did some digging, and found a post on &lt;a href=&#34;http://stackoverflow.com/questions/17625495/how-do-you-programmatically-access-the-ambient-light-sensor-on-mac-os-x-10-5&#34;&gt;Stack Overflow&lt;/a&gt;. I adjusted it a bit to get a single reading, and turned it into this (excuse my C):&lt;/p&gt;
+&lt;pre&gt;&lt;code data-lang=&#34;objective-c&#34;&gt;&amp;#x2F;&amp;#x2F; lmutracker.c
+&amp;#x2F;&amp;#x2F;
+&amp;#x2F;&amp;#x2F; clang -o lmutracker lmutracker.mm -framework IOKit -framework CoreFoundation
+
+#include &amp;lt;mach&amp;#x2F;mach.h&amp;gt;
+#import &amp;lt;IOKit&amp;#x2F;IOKitLib.h&amp;gt;
+#import &amp;lt;CoreFoundation&amp;#x2F;CoreFoundation.h&amp;gt;
+
+static io_connect_t dataPort = 0;
+
+void getSensorReading() {
+  kern_return_t kr;
+  uint32_t outputs = 2;
+  uint64_t values[outputs];
+
+  kr = IOConnectCallMethod(dataPort, 0, NULL, 0, NULL, 0, values, &amp;amp;outputs, NULL, 0);
+  if (kr == KERN_SUCCESS) {
+        printf(&amp;quot;%lld\n&amp;quot;, values[0]);
+    return;
+  }
+
+  if (kr == kIOReturnBusy) {
+    return;
+  }
+
+  mach_error(&amp;quot;I&amp;#x2F;O Kit error:&amp;quot;, kr);
+  exit(kr);
+}
+
+int main(void) {
+  kern_return_t kr;
+  io_service_t serviceObject;
+
+  serviceObject = IOServiceGetMatchingService(kIOMasterPortDefault, IOServiceMatching(&amp;quot;AppleLMUController&amp;quot;));
+  if (!serviceObject) {
+    fprintf(stderr, &amp;quot;failed to find ambient light sensors\n&amp;quot;);
+    exit(1);
+  }
+
+  kr = IOServiceOpen(serviceObject, mach_task_self(), 0, &amp;amp;dataPort);
+  IOObjectRelease(serviceObject);
+  if (kr != KERN_SUCCESS) {
+    mach_error(&amp;quot;IOServiceOpen:&amp;quot;, kr);
+    exit(kr);
+  }
+
+  setbuf(stdout, NULL);
+  printf(&amp;quot;%ld&amp;quot;, 0L);
+  
+  getSensorReading();
+
+    return(0);
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Great, now we have a reading. Now we need to tell Emacs about it. To achieve this, I wrote a quick Bash script:&lt;/p&gt;
+&lt;pre&gt;&lt;code data-lang=&#34;sh&#34;&gt;#!&amp;#x2F;usr&amp;#x2F;bin&amp;#x2F;env bash
+
+DARKTHEME=&amp;quot;solarized-dark&amp;quot;
+LIGHTTHEME=&amp;quot;solarized-light&amp;quot;
+THRESHOLD=800000
+
+function setlight {
+    echo $1 &amp;gt; ~&amp;#x2F;.elight
+}
+
+function getlight {
+    cat ~&amp;#x2F;.elight
+}
+
+if [ $(lmutracker) -lt ${THRESHOLD} ]; then
+    [[ $(getlight) -eq 0 ]] || emacsclient --eval &amp;quot;(load-theme &amp;#x27;${DARKTHEME} t)&amp;quot;
+    setlight 0
+else
+    [[ $(getlight) -eq 1 ]] || emacsclient --eval &amp;quot;(load-theme &amp;#x27;${LIGHTTHEME} t)&amp;quot;
+    setlight 1
+fi
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Obviously, this requires emacs-server to be running. I&amp;rsquo;m saving the current state (&amp;ldquo;dark&amp;rdquo; or &amp;ldquo;light&amp;rdquo;) in a file to reduce unnecessary refreshes of Emacs. Now all that&amp;rsquo;s left is to periodically run this script. I do realize this method is hacky as hell, but it works, and it does so rather well as a POC.&lt;/p&gt;
+</content>
+        </entry>
+    
+        <entry>
+            <title>Dynamically Loading Assets in mynt</title>
+            <link rel="alternate" href="http://crshd.github.io/2014/02/21/Dynamically-Loading-Assets-in-Mynt/" type="text/html" />
+            <id>http://crshd.github.io/2014/02/21/Dynamically-Loading-Assets-in-Mynt/</id>
+            <updated>2014-02-21T01:30:00Z</updated>
+            
+            <summary type="html">I have been thinking about this one for a while, and this evening I finally had time to test my theory. One issue in web development is loading time - We have to assume not everybody has the same incredible bandwith that we do, so we need to keep the pages we&amp;rsquo;re serving small. At the same time, we like to use fancy stuff with CSS and JS, which can cause the size of our serves to get quite out of hand.</summary>
+            <content type="html">&lt;p&gt;I have been thinking about this one for a while, and this evening I finally had time to test my theory. One issue in web development is loading time - We have to assume not everybody has the same incredible bandwith that we do, so we need to keep the pages we&amp;rsquo;re serving small. At the same time, we like to use fancy stuff with CSS and JS, which can cause the size of our serves to get quite out of hand.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://mynt.mirroredwhite.com&#34;&gt;mynt&lt;/a&gt; comes to the rescue with its powerful frontmatter. With a bit of trickery, it allows us to include some scripts only on the pages where we need them. Not all blog posts have code snippets, so it&amp;rsquo;s pointless to include the pygments CSS on every single page. So, how about we add a custom frontmatter tag to posts containing code? How about&amp;hellip; &lt;code&gt;css: [pygments]&lt;/code&gt; for example?&lt;/p&gt;
+&lt;h1&gt;First method: Simple&lt;/h1&gt;
+&lt;p&gt;To make this possible, we&amp;rsquo;ll need to edit two templates: &lt;code&gt;post.html&lt;/code&gt; and &lt;code&gt;layout.html&lt;/code&gt;. First of all, we&amp;rsquo;ll add this to &lt;code&gt;post.html&lt;/code&gt;:&lt;/p&gt;
+&lt;pre&gt;&lt;code data-lang=&#34;jinja&#34;&gt;{% set css = item.css %}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This will export our css frontmatter, so that we can use it in the layout. Talking about layout,&lt;/p&gt;
+&lt;pre&gt;&lt;code data-lang=&#34;jinja&#34;&gt;{% for sheet in css %}
+&amp;lt;link rel=&amp;quot;stylesheet&amp;quot; href=&amp;quot;{{ get_asset(&amp;#x27;css&amp;#x2F;&amp;#x27; + sheet + &amp;#x27;.css&amp;#x27;) }}&amp;quot; type=&amp;quot;text&amp;#x2F;css&amp;quot; media=&amp;quot;screen&amp;quot; &amp;#x2F;&amp;gt;
+{% endfor %}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This loops over all CSS items (we passed a sequence, remember?), and include the corresponding stylesheet at &lt;code&gt;/assets/css/&amp;lt;item&amp;gt;.css&lt;/code&gt;. Something similar can be done for JS, or any other asset you don&amp;rsquo;t want loaded on ever page.&lt;/p&gt;
+&lt;h1&gt;Second Method: Almost the same thing&lt;/h1&gt;
+&lt;p&gt;I had a chitchat with Anomareh about this, and he suggested modifying config.yml to achieve a similar thing. This is what he came up with:&lt;/p&gt;
+&lt;pre&gt;&lt;code data-lang=&#34;yaml&#34;&gt;css: {
+    &amp;#x27;red&amp;#x27;: [&amp;#x27;a.css&amp;#x27;],
+    &amp;#x27;blue&amp;#x27;: [&amp;#x27;a.css&amp;#x27;, &amp;#x27;b.css&amp;#x27;]
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;And the &lt;code&gt;layout.html&lt;/code&gt; would look like this:&lt;/p&gt;
+&lt;pre&gt;&lt;code data-lang=&#34;jinja&#34;&gt;{% for sheet in site.css[item.css] %} ... {% endfor %}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This solution is practical if you want to create &amp;ldquo;sets&amp;rdquo; of stylesheets, which all need to be loaded together. If you want to load single sheets, I do not see an advantage in using this method, it just adds one more file to edit.&lt;/p&gt;
+&lt;h1&gt;Third method: Using custom Layouts&lt;/h1&gt;
+&lt;p&gt;Something else we came up with, and (at least one of us) very quickly dismissed again, is the usage of a custom layout, depending on the type of post you are wanting to write. This is probably the &amp;ldquo;purest&amp;rdquo; (read: non-mynt-specific) way of accomplishing this task.&lt;/p&gt;
+
+&lt;p&gt;While this is also a viable solution to this problem, I&amp;rsquo;m not a big fan of it. Yes, it makes sense when you actually want to use a different &lt;strong&gt;layout&lt;/strong&gt;, but I simply want to include the pygments stylesheet only on pages that need it - the layout would stay the same. By using this solution, I would have to duplicate my &lt;code&gt;post.html&lt;/code&gt; layout, and use a different &lt;code&gt;layout&lt;/code&gt; frontmatter tag. In theory, there is nothing wrong with that, the problem just starts when I decide to update my post layout - I would have to make the same changes to both files. Of course this can be worked around by making use of jinja&amp;rsquo;s child templates, but that would add a clusterfuck of template nesting. If you don&amp;rsquo;t mind these two drawbacks, by all means go for it, but I think it goes against everything mynt stands for - keeping blogging simple. mynt has its powerful frontmatter, so use it!&lt;/p&gt;
+</content>
+        </entry>
+    
+        <entry>
+            <title>Inserting Blank Lines between HTML Tags in Emacs</title>
+            <link rel="alternate" href="http://crshd.github.io/2013/12/03/Inserting-Blank-Lines-between-HTML-Tags-in-Emacs/" type="text/html" />
+            <id>http://crshd.github.io/2013/12/03/Inserting-Blank-Lines-between-HTML-Tags-in-Emacs/</id>
+            <updated>2013-12-03T02:40:00Z</updated>
+            
+            <summary type="html">I code HTML in Emacs, and &lt;a href=&#34;https://github.com/smihica/emmet-mode&#34;&gt;Emmet&lt;/a&gt; makes it a breeze. Although, there was one thing that bugged me. When I expand &lt;code&gt;div&lt;/code&gt;, Emmet gives me</summary>
+            <content type="html">&lt;p&gt;I code HTML in Emacs, and &lt;a href=&#34;https://github.com/smihica/emmet-mode&#34;&gt;Emmet&lt;/a&gt; makes it a breeze. Although, there was one thing that bugged me. When I expand &lt;code&gt;div&lt;/code&gt;, Emmet gives me&lt;/p&gt;
+&lt;pre&gt;&lt;code data-lang=&#34;html&#34;&gt;&amp;lt;div&amp;gt;|&amp;lt;&amp;#x2F;div&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;with the cursor stuck right there in the middle. I (and I think I&amp;rsquo;m not alone with that) would prefer&lt;/p&gt;
+&lt;pre&gt;&lt;code data-lang=&#34;html&#34;&gt;&amp;lt;div&amp;gt;
+    |
+&amp;lt;&amp;#x2F;div&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Getting from the one thing to the other is a mess of inserting newlines and moving the point, and indenting.&lt;/p&gt;
+&lt;h2&gt;Don&amp;rsquo;t Fear, elisp is here!&lt;/h2&gt;
+&lt;p&gt;Until now. This being Emacs, there&amp;rsquo;s a way around this. With the following snippet in my config, everything gets expanded and indented properly when I hit &lt;code&gt;RET&lt;/code&gt; between an opening and closing tag.&lt;/p&gt;
+&lt;pre&gt;&lt;code data-lang=&#34;clojure&#34;&gt;;; redefine newline
+(defun sgml-before-is-opening-tag ()
+  &amp;quot;Check if the tag preceding point is an opening tag.&amp;quot;
+  (save-excursion
+    (let ((pre-tag-position (search-backward &amp;quot;&amp;lt;&amp;quot;)))
+      (if (string= (string (char-after (+ pre-tag-position 1))) &amp;quot;&amp;#x2F;&amp;quot;)
+          nil
+        t))))
+
+(defun sgml-after-is-closing-tag ()
+  &amp;quot;Check if the tag following point is a closing tag.&amp;quot;
+  (save-excursion
+    (let ((post-tag-position (search-forward &amp;quot;&amp;lt;&amp;quot;)))
+      (if (string= (string (char-after post-tag-position)) &amp;quot;&amp;#x2F;&amp;quot;)
+          t
+        nil))))
+
+(defun sgml-is-between-tags ()
+  &amp;quot;Check if point is immediately between two tags (&amp;gt;|&amp;lt;)&amp;quot;
+  (let ((before (string (preceding-char)))
+        (after  (string (following-char))))
+    (if (and
+         (string= before &amp;quot;&amp;gt;&amp;quot;)
+         (string= after &amp;quot;&amp;lt;&amp;quot;))
+        t
+      nil)))
+
+(defun sgml-newline ()
+  &amp;quot;Insert two newlines when point is between opening and closing tags (&amp;gt;|&amp;lt;&amp;#x2F;)&amp;quot;
+  (interactive)
+  (if (and
+       (sgml-is-between-tags)
+       (sgml-before-is-opening-tag)
+       (sgml-after-is-closing-tag))
+      (progn
+        (newline-and-indent)
+        (newline-and-indent)
+        (forward-line -1)
+        (indent-according-to-mode))
+    (newline-and-indent)))
+
+;; keybindings
+(eval-after-load &amp;quot;sgml-mode&amp;quot;
+  &amp;#x27;(progn
+     (define-key sgml-mode-map (kbd &amp;quot;RET&amp;quot;) &amp;#x27;sgml-newline)))
+&lt;/code&gt;&lt;/pre&gt;</content>
+        </entry>
+    
+        <entry>
+            <title>Introducing Emacs Fetch</title>
+            <link rel="alternate" href="http://crshd.github.io/2013/11/28/Introducing-Emacs-Fetch/" type="text/html" />
+            <id>http://crshd.github.io/2013/11/28/Introducing-Emacs-Fetch/</id>
+            <updated>2013-11-28T04:36:00Z</updated>
+            
+            <summary type="html">Let&amp;rsquo;s say you like to use fancy JS frameworks, like jQuery. A lot. Now, what do you do? You could go and download a fresh copy every time you need to use it, but that&amp;rsquo;s so tedious. Or, you could save a copy somewhere in a convenient location on your harddrive, and get it from there. But then you&amp;rsquo;d still have to go and grab the latest every time, or settle for using an older, out-of-date version.</summary>
+            <content type="html">&lt;p&gt;Let&amp;rsquo;s say you like to use fancy JS frameworks, like jQuery. A lot. Now, what do you do? You could go and download a fresh copy every time you need to use it, but that&amp;rsquo;s so tedious. Or, you could save a copy somewhere in a convenient location on your harddrive, and get it from there. But then you&amp;rsquo;d still have to go and grab the latest every time, or settle for using an older, out-of-date version.&lt;/p&gt;
+&lt;h2&gt;The Solution&lt;/h2&gt;
+&lt;p&gt;Somebody thought to himself: “What if there was a plugin that would automatically pull in the latest copy of a file, simply by typing a keyboard shortcut. It’ll perform a curl request to your specified URL (saved away for future use), and allow you to rest assured that, for all new projects, you’re using the latest copy of a particular asset.&lt;/p&gt;
+
+&lt;p&gt;And then they made one.&lt;/p&gt;
+&lt;h2&gt;The Second Dilemma, and Another Solution&lt;/h2&gt;
+&lt;p&gt;This person was &lt;a href=&#34;https://github.com/weslly&#34;&gt;Weslly Honorato&lt;/a&gt;, and he made a great plugin. Except it has one major flaw: It&amp;rsquo;s for the wrong editor. The plugin I&amp;rsquo;m talking about is &lt;a href=&#34;https://github.com/weslly/Nettuts-Fetch&#34;&gt;Nettuts+ Fetch&lt;/a&gt;, and it is for Sublime Text. It&amp;rsquo;s a great plugin for a nice editor, but I prefer Emacs. So what do I do? I bend the powers of Emacs to work in my favor, and write a plugin of my own.&lt;/p&gt;
+&lt;h2&gt;Installation Instructions&lt;/h2&gt;
+&lt;p&gt;This one is easy. Grab the latest source from github, and package-install-file that stuff.&lt;/p&gt;
+&lt;pre&gt;&lt;code data-lang=&#34;bash&#34;&gt;$ git clone https:&amp;#x2F;&amp;#x2F;github.com&amp;#x2F;crshd&amp;#x2F;fetch.el.git
+$ emacs --eval &amp;#x27;(package-install-file &amp;quot;fetch.el&amp;#x2F;fetch.el&amp;quot;)&amp;#x27;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;I have submitted a request to get this package included in &lt;a href=&#34;http://melpa.milkbox.net&#34;&gt;MELPA&lt;/a&gt;, so keep an eye on that to make the installation process even simpler.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Edit:&lt;/strong&gt; It has since been included into the repo, so go ahead and get it from there.&lt;/p&gt;
+&lt;h2&gt;Usage&lt;/h2&gt;
+&lt;p&gt;This is where it gets a bit more complicated (but not much, I swear!). First of all, you have to add your favorite package to the association list (actually, this step is optional, more on that later). To do so, drop something like this in your &lt;code&gt;.emacs&lt;/code&gt;:&lt;/p&gt;
+&lt;pre&gt;&lt;code data-lang=&#34;clojure&#34;&gt;(add-to-list &amp;#x27;fetch-package-alist
+             &amp;#x27;(&amp;quot;jquery&amp;quot; . &amp;quot;http:&amp;#x2F;&amp;#x2F;code.jquery.com&amp;#x2F;jquery.min.js&amp;quot;) t)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now, grabbing the latest release of jQuery is just an &lt;code&gt;M-x fetch-resource&lt;/code&gt; away. &lt;code&gt;fetch-resource&lt;/code&gt; will supply you with a list of packages you defined, for you to pick from.&lt;/p&gt;
+
+&lt;p&gt;Alternatively, you don&amp;rsquo;t even need to modify any alist, or touch your &lt;code&gt;.emacs&lt;/code&gt;. You can call the function &lt;code&gt;M-x fetch-url&lt;/code&gt;, and you get a chance to input the URL directly. This allows you to download and use any package quickly, without worrying about leaving the comfort of your editor. And you don&amp;rsquo;t even need to put on pants!&lt;/p&gt;
+&lt;h3&gt;But Wait, There&amp;rsquo;s More!&lt;/h3&gt;
+&lt;p&gt;Apart from just handling single files, you can grab entire &lt;strong&gt;archives&lt;/strong&gt;! Take &lt;a href=&#34;http://getbootstrap.com&#34;&gt;Bootstrap&lt;/a&gt; for example. You can add the download link to the alist as usual, and fetch.el will take care of everything, from downloading to unpacking the &lt;code&gt;.zip&lt;/code&gt;.&lt;/p&gt;
+</content>
+        </entry>
+    
+        <entry>
+            <title>How I Git my Dotfiles</title>
+            <link rel="alternate" href="http://crshd.github.io/2013/09/05/How-I-Git-my-Dotfiles/" type="text/html" />
+            <id>http://crshd.github.io/2013/09/05/How-I-Git-my-Dotfiles/</id>
+            <updated>2013-09-05T05:34:00Z</updated>
+            
+            <summary type="html">Dotfiles are every developer&amp;rsquo;s and geek&amp;rsquo;s pride and joy. Hours of work have been spent on them, and most important of all, they are constantly evolving. If you are like me, hardly a day goes by where you don&amp;rsquo;t add a cool new piece of functionality that you just came up with, or found by looking through somebody else&amp;rsquo;s configs.</summary>
+            <content type="html">&lt;p&gt;Dotfiles are every developer&amp;rsquo;s and geek&amp;rsquo;s pride and joy. Hours of work have been spent on them, and most important of all, they are constantly evolving. If you are like me, hardly a day goes by where you don&amp;rsquo;t add a cool new piece of functionality that you just came up with, or found by looking through somebody else&amp;rsquo;s configs.&lt;/p&gt;
+
+&lt;p&gt;Now, having a byte-tuned system is great for workflow. But unfortunately, there are some side effects. If you lose your files, you are seriously crippled. Moving to a new system involves a lot of searching for files, copying and pasting them from one computer to another. And you&amp;rsquo;re likely to be constantly bombarded with questions about how you did what.&lt;/p&gt;
+&lt;h2&gt;The Solution&lt;/h2&gt;
+&lt;p&gt;One possible solution to these problems: every developer&amp;rsquo;s best friend, Github!&lt;/p&gt;
+
+&lt;p&gt;Config files are all backed up, even if all of your hardware falls victim to a kraken, you&amp;rsquo;ll still be able to clone your repository from Github once you have aquired new electron pushers. Moving to a new system is easy, just clone the repository, and you are good to go. And best of all, you can show off in front of your friends! The next time somebody asks you for some config file, just give them the link to the repository. No more uploading single files on some random pastebin, forgetting the link, uploading again, loosing track of what where and when, and having people find old, possibly broken, versions and yelling at you. What a relief&amp;hellip;&lt;/p&gt;
+&lt;h2&gt;How I did it. AKA: the strategy&lt;/h2&gt;
+&lt;p&gt;Have I convinced you yet? Great, read on.&lt;/p&gt;
+
+&lt;p&gt;If you want to post your configuration files on the Hub, there are some things to keep in mind:&lt;/p&gt;
+
+&lt;dl&gt;
+    &lt;dt&gt;Location&lt;/dt&gt;
+    &lt;dd&gt;
+        Unfortunately, developers still have not managed to decide on a single location to keep configuration files. Most of them are still dumped into hidden directories in your $HOME, some actually obey `$XDG_CONFIG_DIR` (which defaults to `~/.config`), and other only act like they do, but their location is hardcoded to `~/.config`, instead of reading the environment variable.
+    &lt;/dd&gt;
+    &lt;dt&gt;Passwords&lt;/dt&gt;
+    &lt;dd&gt;
+        If you are putting your configuration files online for the world to see, you should **really** make sure to remove all your passwords, api keys and other sensitive data before pushing it to github. Ideally, they should be encrypted and stored somewhere else, but sometimes you just cannot get around saving them as plaintext in some file somewhere.
+    &lt;/dd&gt;
+    &lt;dt&gt;Clutter&lt;/dt&gt;
+    &lt;dd&gt;
+        Please, for the love of God, make sure you keep your files organized. No useless files in your repo!
+    &lt;/dd&gt;
+&lt;/dl&gt;
+
+&lt;p&gt;Below I will show you how I got around these things.&lt;/p&gt;
+&lt;h2&gt;Location&lt;/h2&gt;
+&lt;p&gt;So, you want to git your configs, but they are scattered all over the place. You can&amp;rsquo;t just stuff your entire &lt;code&gt;$HOME&lt;/code&gt; into a repository - this is not going to work out. I like to keep files organized anyways, so this was the perfect excuse for me to go all OCD on my file system.&lt;/p&gt;
+&lt;h3&gt;XDG Base Directory Specification&lt;/h3&gt;
+&lt;p&gt;freedesktop.org came up with a beautiful solution to this mess: the &lt;a href=&#34;http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html&#34;&gt;XDG Base Directory Specification&lt;/a&gt;. Every piece of software that follows this specification will put it&amp;rsquo;s config file wherever the environment variable &lt;code&gt;$XDG_CONFIG_HOME&lt;/code&gt; points to. I&amp;rsquo;ve set mine to &lt;code&gt;~/etc&lt;/code&gt; (because &lt;code&gt;/etc&lt;/code&gt;), but it&amp;rsquo;s really up to you. So make sure to set it in your shell configuration. And put that shell config in &lt;code&gt;$XDG_CONFIG_HOME&lt;/code&gt;. Configception.&lt;/p&gt;
+&lt;h3&gt;Command Line Flags&lt;/h3&gt;
+&lt;p&gt;Unfortunately, a lot of software still does not follow the specifications, in which case you&amp;rsquo;ll have to do some manual work. Luckily, &lt;em&gt;most&lt;/em&gt; software allows you to specify an alternative configuration file via command-line options, or sometimes even environment variables. So go RTFM and modify your shell rc accordingly (just set aliases).&lt;/p&gt;
+&lt;h3&gt;Symlinks&lt;/h3&gt;
+&lt;p&gt;Some (very few, though) programs do not allow you to change the location of their configuration file. At least not without modifying the source (I&amp;rsquo;m looking at you, Emacs and Xmonad). In this case, you have three options: patch the source and recompile, bug the developers, or use symlinks. While it clutters my &lt;code&gt;$HOME&lt;/code&gt; again, I decided to go for the latter solution. I do have subdirectories for both Emacs and Xmonad in my &lt;code&gt;~/etc&lt;/code&gt;, which I just symlinked to &lt;code&gt;~/.emacs.d&lt;/code&gt; and &lt;code&gt;~/.xmonad&lt;/code&gt; respectively.&lt;/p&gt;
+&lt;h2&gt;Sensitive Data&lt;/h2&gt;
+&lt;p&gt;So yeah, them passwords. Again, I have three different methods how you can avoid giving people the account details of your online banking account.&lt;/p&gt;
+&lt;h3&gt;Git Filters&lt;/h3&gt;
+&lt;p&gt;Git has filters that can be applied to your code before it gets commited. &lt;a href=&#34;http://www.imagination-land.org/posts/2013-01-21-manage-you-critical-configuration-files-with-git.html&#34;&gt;Marc-Antoine Perennou&lt;/a&gt; did a nice write-up about this, so I&amp;rsquo;m not going to go into too much detail here, but you can clean your passwords with&lt;/p&gt;
+&lt;pre&gt;&lt;code data-lang=&#34;bash&#34;&gt;$ git config filter.password.clean &amp;quot;sed -e &amp;#x27;s&amp;#x2F;mypassword&amp;#x2F;@PASSWORD@&amp;#x2F;&amp;#x27; -e &amp;#x27;s&amp;#x2F;anotherpassword&amp;#x2F;@PASSWORD2@&amp;#x2F;&amp;#x27;&amp;quot;
+$ git config filter.password.smudge &amp;quot;sed -e &amp;#x27;s&amp;#x2F;@PASSWORD@&amp;#x2F;mypassword&amp;#x2F;&amp;#x27; -e &amp;#x27;s&amp;#x2F;@PASSWORD2@&amp;#x2F;anotherpassword&amp;#x2F;&amp;#x27;&amp;quot;
+$ cat &amp;gt; .git&amp;#x2F;info&amp;#x2F;attributes &amp;lt;&amp;lt; EOF
+myconf.conf filter=password
+EOF
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This is obviously a very simple example, and will only work if you use the same password everywhere. So you&amp;rsquo;d need to add a filter for every different password you use. But since it&amp;rsquo;s just calling sed, you have the possibility to go completely crazy with regexes, if you&amp;rsquo;re one of those people.&lt;/p&gt;
+&lt;h3&gt;.gitignore&lt;/h3&gt;
+&lt;p&gt;Another possibitly would be to use &lt;code&gt;.gitignore&lt;/code&gt;, and ignore all the files that contain sensitive data. For example, I&amp;rsquo;m ignoring &lt;code&gt;~/etc/fb-client/apikey&lt;/code&gt;, which basically contains nothing more than my API key for &lt;a href=&#34;http://paste.xinu.at&#34;&gt;paste.xinu.at&lt;/a&gt;. Not much more to say about that.&lt;/p&gt;
+&lt;h3&gt;External Files&lt;/h3&gt;
+&lt;p&gt;Depending on the type of configuration, you might be able to read your passwords from an external file, which you could keep outside your repo. Or which is .gitignored. Since the methods differ for each application, there&amp;rsquo;s no example here. Go cry about it.&lt;/p&gt;
+&lt;h2&gt;Clutter&lt;/h2&gt;
+&lt;p&gt;There&amp;rsquo;s really not a lot to write about this. Please make sure you keep your stuff organized. Everything in its subdirectory, don&amp;rsquo;t include useless files, like auto-generated stuff or editor backups. Just double-check everything before calling git add on it, and set your ignores accordingly.&lt;/p&gt;
+</content>
+        </entry>
+    
+        <entry>
+            <title>Using SSH Keys instead of Passwords</title>
+            <link rel="alternate" href="http://crshd.github.io/2012/09/20/Using-SSH-Keys-instead-of-Passwords/" type="text/html" />
+            <id>http://crshd.github.io/2012/09/20/Using-SSH-Keys-instead-of-Passwords/</id>
+            <updated>2012-09-20T11:43:00Z</updated>
+            
+            <summary type="html">SSH keys are used to identify yourself to an SSH server, much like using a password. There&amp;rsquo;s a couple of advantages in using SSH keys instead of typing in your password everytime you connect to a server:</summary>
+            <content type="html">&lt;p&gt;SSH keys are used to identify yourself to an SSH server, much like using a password. There&amp;rsquo;s a couple of advantages in using SSH keys instead of typing in your password everytime you connect to a server:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Less typing (for all the lazy people out there - including myself)&lt;/li&gt;
+&lt;li&gt;No need to remember passwords (not that I&amp;rsquo;m saying it&amp;rsquo;s a &lt;em&gt;good&lt;/em&gt; thing to forget passwords)&lt;/li&gt;
+&lt;li&gt;The password is never transmitted, so it cannot be intercepted&lt;/li&gt;
+&lt;li&gt;SSH keys are a lot harder to brute-force than your standard passwords (like &amp;ldquo;love&amp;rdquo;, &amp;ldquo;sex&amp;rdquo;, the name of your dog, or the birthday of your lover)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;For the sake of this lesson, I will be using OpenSSH, because it&amp;rsquo;s pretty much standard issue with most Unix-like systems, and my user account on anapnea, just because I have one there.&lt;/p&gt;
+&lt;h1&gt;Basic Understanding&lt;/h1&gt;
+&lt;p&gt;SSH keys always consist of two parts - a &lt;strong&gt;private&lt;/strong&gt; key, which will (hopefully) stay with you, and the &lt;strong&gt;public&lt;/strong&gt; counterpart - that is the one that will be shared with the server(s) you want to connect to.&lt;/p&gt;
+
+&lt;p&gt;When you try to connect to the server, it will use the public key to encrypt a &amp;ldquo;challenge&amp;rdquo;, which will then be send to your computer, and can only be decrypted with your private key. Think of this challenge as the big bearded guy looking through a peep hole, &lt;a href=&#34;http://www.youtube.com/watch?v=tzcxruP8mDM&#34;&gt;yelling &amp;ldquo;Passwort?&amp;rdquo;&lt;/a&gt;, before granting you entry. Only that he&amp;rsquo;s using some made-up language that only you can understand.&lt;/p&gt;
+&lt;h1&gt;Generating a Key Pair&lt;/h1&gt;
+&lt;p&gt;A simple key pair can be genrated with a simple command:&lt;/p&gt;
+&lt;pre&gt;&lt;code data-lang=&#34;bash&#34;&gt;$ ssh-keygen -t rsa
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This will generate a 2048bit RSA key&lt;/p&gt;
+
+&lt;p&gt;But we are not going to use that. For this tutorial, we will be using something a bit more custom:&lt;/p&gt;
+&lt;pre&gt;&lt;code data-lang=&#34;bash&#34;&gt;$ ssh-keygen -t ecdsa -b 521 -C &amp;quot;$(whoami)@$(hostname)-$(date)&amp;quot;;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;(above command shamelessly ripped from the Archlinux Wiki)&lt;/p&gt;
+
+&lt;dl&gt;
+     &lt;dt&gt;-t ecdsa&lt;/dt&gt;
+     &lt;dd&gt;ECDSA (Elliptic Curve Digital Signature Algorithm - Don&amp;rsquo;t worry, I&amp;rsquo;m not going to quiz you on that) is the preferred algorithm since OpenSSH 5.7. Believe me, those people know what they are doing, so if they prefer it, it&amp;rsquo;s good enough for me.&lt;/dd&gt;
+
+     &lt;dt&gt;-b 521&lt;/dt&gt;
+     &lt;dd&gt;We are generating a 521 bit long key. You could increase this value to make the key longer and safer, but keep in mind that a longer key will increase load and take longer while authenticating. ECDSA has equivalent security to RSA/DSA with smaller key sizes, so 521 should be sufficient, unless you work for the CIA.&lt;/dd&gt;
+
+     &lt;dt&gt;-C &amp;ldquo;$(whoami)@$(hostname)-$(date)&amp;rdquo;&lt;/dt&gt;
+     &lt;dd&gt;This is just a comment string. It&amp;rsquo;s completely unnecessary, but it might help identifying the key later.&lt;/dd&gt;
+&lt;/dl&gt;
+
+&lt;p&gt;You will be asked where to save the generated keys. The default is &lt;code&gt;~/.ssh&lt;/code&gt;, and I would recommend leaving it at that. That is the place where every application will look for it. Changing this basically is asking for trouble down the road.&lt;/p&gt;
+
+&lt;p&gt;You will also be asked to enter a passphrase. It can be left blank for convenience, but then the key is saved unencrypted. This is a major security risk. On a single-user system it might be okay, on a multi-user system I would not recommend doing this.&lt;/p&gt;
+
+&lt;p&gt;If everything worked, you should something along the lines of this:&lt;/p&gt;
+&lt;pre&gt;&lt;code data-lang=&#34;ssh&#34;&gt;Generating public&amp;#x2F;private ecdsa key pair.
+Enter file in which to save the key (&amp;#x2F;home&amp;#x2F;crshd&amp;#x2F;.ssh&amp;#x2F;id_ecdsa):
+Enter passphrase (empty for no passphrase):
+Enter same passphrase again:
+Your identification has been saved in &amp;#x2F;home&amp;#x2F;crshd&amp;#x2F;.ssh&amp;#x2F;id_ecdsa.
+Your public key has been saved in &amp;#x2F;home&amp;#x2F;crshd&amp;#x2F;.ssh&amp;#x2F;id_ecdsa.pub.
+The key fingerprint is:
+c3:c3:ec:4e:f9:7a:ff:e5:54:e1:e3:dc:c1:e1:3b:00 crshd@tatooine-Mo 17 Sep 2012 01:31:31 MYT
+The key&amp;#x27;s randomart image is:
++--[ECDSA  521]---+
+|                 |
+|                 |
+|           E   o |
+|       +    . + o|
+|        S    . *.|
+|       . +    + *|
+|        +      =+|
+|       o ..    +.|
+|        oo..... .|
++-----------------+
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;And you will have two files in &lt;code&gt;~/.ssh&lt;/code&gt;: &lt;code&gt;id_ecdsa&lt;/code&gt; and &lt;code&gt;id_ecdsa.pub&lt;/code&gt;.&lt;/p&gt;
+&lt;h1&gt;Moving the Public Key to the Server&lt;/h1&gt;
+&lt;p&gt;There are two methods of moving the key to the server.&lt;/p&gt;
+&lt;h2&gt;Traditional Method&lt;/h2&gt;
+&lt;p&gt;Transfer your key:&lt;/p&gt;
+&lt;pre&gt;&lt;code data-lang=&#34;bash&#34;&gt;$ scp ~&amp;#x2F;.ssh&amp;#x2F;id_ecdsa.pub crshd@anapnea.net:
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;strong&gt;Make sure you copy the public key, not the private one&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Hop on to the server:&lt;/p&gt;
+&lt;pre&gt;&lt;code data-lang=&#34;bash&#34;&gt;$ ssh crshd@anapnea.net
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Create &lt;code&gt;~/.ssh&lt;/code&gt; on the server:&lt;/p&gt;
+&lt;pre&gt;&lt;code data-lang=&#34;bash&#34;&gt;$ mkdir ~&amp;#x2F;.ssh
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Copy key to authorized keys:&lt;/p&gt;
+&lt;pre&gt;&lt;code data-lang=&#34;bash&#34;&gt;$ cat id_ecdsa.pub &amp;gt;&amp;gt; ~&amp;#x2F;.ssh&amp;#x2F;authorized_keys
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Delete key file:&lt;/p&gt;
+&lt;pre&gt;&lt;code data-lang=&#34;bash&#34;&gt;$ rm id_ecdsa.pub
+&lt;/code&gt;&lt;/pre&gt;&lt;h2&gt;Simple Method&lt;/h2&gt;
+&lt;p&gt;The simple way to transfer the public key is using &lt;code&gt;ssh-copy-id&lt;/code&gt;:&lt;/p&gt;
+&lt;pre&gt;&lt;code data-lang=&#34;bash&#34;&gt;$ ssh-copy-id -i ~&amp;#x2F;.ssh&amp;#x2F;id_ecdsa.pub crshd@anapnea.net
+&lt;/code&gt;&lt;/pre&gt;&lt;h1&gt;Securing the authorized_keys file&lt;/h1&gt;
+&lt;p&gt;On the server, make sure you set the permission for &lt;code&gt;~/.ssh/authorized_keys&lt;/code&gt; to 600, so it is only readable by yourself:&lt;/p&gt;
+&lt;pre&gt;&lt;code data-lang=&#34;bash&#34;&gt;$ chmod 600 ~&amp;#x2F;.ssh&amp;#x2F;authorized_keys
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr&gt;
+
+&lt;p&gt;I hope this helped somebody. Happy SSHing!&lt;/p&gt;
+</content>
+        </entry>
+    
+</feed>

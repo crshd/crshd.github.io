@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+				<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<meta name="viewport" content="width=device-width">
+		<meta name="author" content="Christian &ldquo;crshd&rdquo; Brassat">
+		<meta name="description" content="Yup, got that.">
+		<meta name="generator" content="mynt v0.3.1">
+
+		<link rel="shortcut icon" href="/assets/images/favicon.ico" type="image/x-icon">
+
+		<link rel="alternate" href="/feed.xml" type="application/atom+xml">
+
+		<link rel="stylesheet" href="/assets/css/normalize.css" type="text/css">
+		<link rel="stylesheet" href="/assets/css/main.css" type="text/css">
+
+		<link rel="stylesheet" href="/assets/css/pygments.css" type="text/css">
+
+		<script src="/assets/js/vendor/modernizr-2.6.2-respond-1.1.0.min.js" type="text/javascript"></script>
+    <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+
+		
+
+		<title>DIY Nginx + ruTorrent Seedbox on Wheezy (Part 1) &ndash; crshd</title>
+
+		
+		<script src="//use.typekit.net/pnj4nyv.js"></script>
+		<script>try{Typekit.load();}catch(e){}</script>
+	</head>
+
+	<body>
+		<!--[if lt IE 7]>
+			<p class="chromeframe">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> or <a href="http://www.google.com/chromeframe/?redirect=true">activate Google Chrome Frame</a> to improve your experience.</p>
+		<![endif]-->
+<header class="wrapper clearfix">
+    <div class="container">
+        <div class="title"></div>
+        <nav>
+						<ul>
+								<li><a href="/">Home</a></li>
+								<li><a href="/Colophon">Colophon</a></li>
+								<li><a href="/feed.xml">Feed</a></li>
+						</ul>
+        </nav>
+    </div>
+</header>
+
+		<div class="main-container clearfix">
+
+<article class="single clearfix">
+	<div class="meta">
+		<p>&#123;&nbsp;Tue, 16. Dec 2014&nbsp;&#125;</p>
+		
+		<ul>
+			
+			<li><a href="/Torrent/">Torrent</a></li>
+			
+		</ul>
+		
+	</div>
+	<div class="content">
+		<h1 class="title">DIY Nginx + ruTorrent Seedbox on Wheezy (Part 1)</h1>
+		<p>Get some coffee/tea/coke/drink of choice and some snacks. This&rsquo;ll take a while. We&rsquo;ll be taking a barebone stock Debian system and set up a killer seedbox all from scratch, using rTorrent/libTorrent, ruTorrent and Nginx with SSL.</p>
+<h1>Install Nginx and PHP</h1>
+<p>Most of the guides you&rsquo;ll find on ruTorrent use Apache as the server, because - well, Apache. We&rsquo;ll be using Nginx instead, because - well, Nginx. So we need to install it.</p>
+<div class="code"><div><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="go">apt-get install nginx php5-fpm</span>
+</pre></div>
+</td></tr></table></div></div>
+<p>I like to keep my my server files in <code>/var/www</code>. So we need to tell PHP where it&rsquo;s at. Open <code>/etc/php5/fpm/php.ini</code> and change <code>open_basedir</code> to <code>/var/www</code>.</p>
+<h1>Create User</h1>
+<p>We need a user to run rTorrent. You can name it whatever you want, but if you chose something different, remember to adjust the configs in the rest of this article.</p>
+
+<p>We&rsquo;ll also be creating a common group for this user and Nginx.</p>
+<div class="code"><div><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="go">groupadd rutorrent</span>
+<span class="go">useradd -G rutorrent user</span>
+<span class="go">usermod -a -G rutorrent www-data</span>
+</pre></div>
+</td></tr></table></div></div><h1>Setting up SSL</h1>
+<p>Security doesn&rsquo;t hurt, so while we&rsquo;re at it, we might as well set up SSL for Nginx. This is for personal use (you don&rsquo;t really plan to share your Seedbox with others, do you?), so a self-signed cert should be good enough for now. If you feel like you want to get it signed somewhere else, go ahead and send me you money instead.</p>
+<div class="code"><div><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7</pre></div></td><td class="code"><div class="highlight"><pre><span class="go">mkdir -p /etc/nginx/ssl</span>
+<span class="go">cd /etc/nginx/ssl</span>
+<span class="go">openssl genrsa -des3 -out server.key 2048</span>
+<span class="go">openssl req -new -key server.key -out server.csr</span>
+<span class="go">mv server.key server.key.orig</span>
+<span class="go">openssl rsa -in server.key.orig -out server.key</span>
+<span class="go">openssl x509 -req -days 365 -in server.csr -signkey server.key -out server.crt</span>
+</pre></div>
+</td></tr></table></div></div><h1>Working Dir</h1>
+<p>I&rsquo;ll try to keep things clean, that&rsquo;s why I&rsquo;m creating a temporary directory to work in.</p>
+<div class="code"><div><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="go">mkdir ~/workdir; cd ~/workdir</span>
+</pre></div>
+</td></tr></table></div></div><h1>Install XMLRPC-C</h1>
+<p>rTorrent and Nginx need this to be able to communicate with each other.</p>
+<div class="code"><div><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="go">svn checkout http://svn.code.sf.net/p/xmlrpc-c/code/advanced xmlrpc-c</span>
+<span class="go">cd xmlrpc-c</span>
+<span class="go">./configure --disable-cplusplus</span>
+<span class="go">make; make install</span>
+</pre></div>
+</td></tr></table></div></div><h1>Install libTorrent</h1>
+<p>Clone and compile, nothing special.</p>
+<div class="code"><div><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6</pre></div></td><td class="code"><div class="highlight"><pre><span class="go">cd ~/workdir</span>
+<span class="go">git clone https://github.com/rakshasa/libtorrent.git</span>
+<span class="go">cd libtorrent</span>
+<span class="go">./autogen.sh</span>
+<span class="go">./configure</span>
+<span class="go">make; make install</span>
+</pre></div>
+</td></tr></table></div></div><h1>Install rTorrent</h1>
+<p>Again - clone and compile. We need to make sure we configure <code>--with-xmlrpc-c</code>.</p>
+<div class="code"><div><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4
+5
+6
+7</pre></div></td><td class="code"><div class="highlight"><pre><span class="go">cd ~/workdir</span>
+<span class="go">git cone https://github.com/rakshasa/rtorrent.git</span>
+<span class="go">cd rtorrent</span>
+<span class="go">./autogen.sh</span>
+<span class="go">./configure --with-xmlrpc-c</span>
+<span class="go">make; make install</span>
+<span class="go">ldconfig</span>
+</pre></div>
+</td></tr></table></div></div><h1>Install and configure ruTorrent</h1>
+<p>This one is rather easy. We just need to clone the git repo into <code>/var/www</code></p>
+<div class="code"><div><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="go">mkdir -p /var/www; cd /var/www</span>
+<span class="go">git clone https://github.com/Novik/ruTorrent.git</span>
+</pre></div>
+</td></tr></table></div></div>
+<p>ruTorrent doesn&rsquo;t need a lot of configuration. Let&rsquo;s take a look at <code>/var/www/ruTorrent/conf/config.php</code>.</p>
+<div class="code"><div><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="x">$topDirectory = &quot;/home/user&quot;</span>
+<span class="x">$scgi_port = 0;</span>
+<span class="x">$scgi_host = &quot;unix:///home/user/.rtorrent-scgi.sock&quot;</span>
+</pre></div>
+</td></tr></table></div></div><h1>Set up a Server Block</h1>
+<p>Nginx has &ldquo;Server Blocks&rdquo; for the individual apps running on the server. Let&rsquo;s create one for ruTorrent.</p>
+
+<p><code>/etc/nginx/sites-available/rutorrent</code></p>
+<div class="code"><div><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29</pre></div></td><td class="code"><div class="highlight"><pre><span class="k">server</span> <span class="p">{</span>
+  <span class="kn">listen</span> <span class="mi">443</span> <span class="s">ssl</span><span class="p">;</span>
+  <span class="kn">server_name</span> <span class="s">yavin.trashbukk.it</span> <span class="s">trashbukk.it</span> <span class="s">localhost</span><span class="p">;</span>
+
+  <span class="kn">root</span> <span class="s">/var/www/ruTorrent</span><span class="p">;</span>
+  <span class="kn">index</span> <span class="s">index.html</span> <span class="s">index.htm</span> <span class="s">index.php</span><span class="p">;</span>
+
+  <span class="kn">ssl_certificate</span> <span class="s">/etc/nginx/ssl/server.crt</span><span class="p">;</span>
+  <span class="kn">ssl_certificate_key</span> <span class="s">/etc/nginx/ssl/server.key</span><span class="p">;</span>
+
+  <span class="kn">auth_basic</span> <span class="s">&quot;Restricted&quot;</span><span class="p">;</span>
+  <span class="kn">auth_basic_user_file</span> <span class="s">/etc/nginx/.htpasswd</span><span class="p">;</span>
+
+  <span class="kn">location</span> <span class="s">/</span> <span class="p">{</span>
+    <span class="kn">try_files</span> <span class="nv">$uri</span> <span class="nv">$uri/</span> <span class="p">=</span><span class="mi">404</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="kn">location</span> <span class="s">/RPC2</span> <span class="p">{</span>
+    <span class="kn">include</span> <span class="s">scgi_params</span><span class="p">;</span>
+    <span class="kn">scgi_pass</span> <span class="s">unix:/home/user/.rtorrent-scgi.sock</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="kn">location</span> <span class="p">~</span> <span class="sr">\.php$</span> <span class="p">{</span>
+    <span class="kn">fastcgi_split_path_info</span> <span class="s">^(.+\.php)(/.+)</span>$<span class="p">;</span>
+    <span class="kn">fastcgi_pass</span> <span class="s">unix:/var/run/php5-fpm.sock</span><span class="p">;</span>
+    <span class="kn">fastcgi_index</span> <span class="s">index.php</span><span class="p">;</span>
+    <span class="kn">include</span> <span class="s">fastcgi_params</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</td></tr></table></div></div>
+<p>We also want it password-protected. We wouldn&rsquo;t want the world to see all your pr0n.</p>
+<div class="code"><div><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2</pre></div></td><td class="code"><div class="highlight"><pre><span class="go">apt-get install apache2-utils</span>
+<span class="go">htpasswd -c /etc/nginx/.htpasswd user</span>
+</pre></div>
+</td></tr></table></div></div>
+<p>Aaand reload</p>
+<div class="code"><div><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="go">service nginx reload</span>
+</pre></div>
+</td></tr></table></div></div><h1>Install some needed packages for ruTorrent plugins</h1>
+<p>Some of ruTorrent&rsquo;s plugins need some additional binaries. This seems like a good time to install them.</p>
+<div class="code"><div><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="go">apt-get install php5-cli ffmpeg mediainfo</span>
+</pre></div>
+</td></tr></table></div></div><h1>Get rtorrent to start at boot</h1>
+<p>Nginx runs on boot by default, so no issue there. But we want rtorrent to start, too. We&rsquo;re lazy like that.</p>
+
+<p>Many people will tell you to write an init script for this, but IMO that&rsquo;s overkill. I prefer to use <code>/etc/rc.local</code></p>
+<div class="code"><div><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre>start-stop-daemon --start --chuid seed --name rtorrent --exec /usr/bin/screen -- -fa -d -m /usr/local/bin/rtorrent
+</pre></div>
+</td></tr></table></div></div><h1>That&rsquo;s it!</h1>
+<p>Try it, reboot your server and see everything running!</p>
+
+	</div>
+	
+</article>
+
+		</div>
+
+		<div class="clearfix"></div>
+
+<footer class="wrapper clearfix">
+    <div>
+        <ul id="social">
+						 <li><a href="https://github.com/crshd"><i class="fa fa-github"></i></a></li>
+						 <li><a href="https://twitter.com/#!/cr4shd"><i class="fa fa-twitter"></i></a></li>
+						 <li><a href="http://www.last.fm/user/coffeefreeze"><i class="fa fa-music"></i></a></li>
+						 <li><a href="https://plus.google.com/108913776594552349551"><i class="fa fa-google-plus-square"></i></a></li>
+						
+						
+						 <li><a href="http://stackoverflow.com/users/2669928"><i class="fa fa-stack-overflow"></i></a></li>
+						 <li><a href="http://steamcommunity.com/profiles/76561198081615765"><i class="fa fa-gamepad"></i></a></li>
+        </ul>
+        <p>
+            &copy; 2015 Christian &ldquo;crshd&rdquo; Brassat &ndash; 
+            powered by <a href="http://mynt.mirroredwhite.com/">mynt</a> &ndash;
+            hosted using <a href="http://pages.github.com/">GitHub Pages</a> &ndash;
+            <a href="https://github.com/crshd/io.source">source</a>
+        </p>
+    </div>
+</footer>
+
+		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
+		<script>window.jQuery || document.write('<script src="/assets/js/vendor/jquery-1.10.1.min.js"><\/script>')</script>
+		<script>
+			$(document).ready(function() {
+				$('#bitcoin').hide();
+			});
+		</script>
+
+		<script src="/assets/js/main.js"></script>
+	</body>
+</html>

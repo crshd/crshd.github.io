@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+				<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<meta name="viewport" content="width=device-width">
+		<meta name="author" content="Christian &ldquo;crshd&rdquo; Brassat">
+		<meta name="description" content="Yup, got that.">
+		<meta name="generator" content="mynt v0.3.1">
+
+		<link rel="shortcut icon" href="/assets/images/favicon.ico" type="image/x-icon">
+
+		<link rel="alternate" href="/feed.xml" type="application/atom+xml">
+
+		<link rel="stylesheet" href="/assets/css/normalize.css" type="text/css">
+		<link rel="stylesheet" href="/assets/css/main.css" type="text/css">
+
+		<link rel="stylesheet" href="/assets/css/pygments.css" type="text/css">
+
+		<script src="/assets/js/vendor/modernizr-2.6.2-respond-1.1.0.min.js" type="text/javascript"></script>
+    <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+
+		
+
+		<title>Dynamically Loading Assets in mynt &ndash; crshd</title>
+
+		
+		<script src="//use.typekit.net/pnj4nyv.js"></script>
+		<script>try{Typekit.load();}catch(e){}</script>
+	</head>
+
+	<body>
+		<!--[if lt IE 7]>
+			<p class="chromeframe">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> or <a href="http://www.google.com/chromeframe/?redirect=true">activate Google Chrome Frame</a> to improve your experience.</p>
+		<![endif]-->
+<header class="wrapper clearfix">
+    <div class="container">
+        <div class="title"></div>
+        <nav>
+						<ul>
+								<li><a href="/">Home</a></li>
+								<li><a href="/Colophon">Colophon</a></li>
+								<li><a href="/feed.xml">Feed</a></li>
+						</ul>
+        </nav>
+    </div>
+</header>
+
+		<div class="main-container clearfix">
+
+<article class="single clearfix">
+	<div class="meta">
+		<p>&#123;&nbsp;Fri, 21. Feb 2014&nbsp;&#125;</p>
+		
+		<ul>
+			
+			<li><a href="/mynt/">mynt</a></li>
+			
+			<li><a href="/webdev/">webdev</a></li>
+			
+		</ul>
+		
+	</div>
+	<div class="content">
+		<h1 class="title">Dynamically Loading Assets in mynt</h1>
+		<p>I have been thinking about this one for a while, and this evening I finally had time to test my theory. One issue in web development is loading time - We have to assume not everybody has the same incredible bandwith that we do, so we need to keep the pages we&rsquo;re serving small. At the same time, we like to use fancy stuff with CSS and JS, which can cause the size of our serves to get quite out of hand.</p>
+
+<p><a href="http://mynt.mirroredwhite.com">mynt</a> comes to the rescue with its powerful frontmatter. With a bit of trickery, it allows us to include some scripts only on the pages where we need them. Not all blog posts have code snippets, so it&rsquo;s pointless to include the pygments CSS on every single page. So, how about we add a custom frontmatter tag to posts containing code? How about&hellip; <code>css: [pygments]</code> for example?</p>
+<h1>First method: Simple</h1>
+<p>To make this possible, we&rsquo;ll need to edit two templates: <code>post.html</code> and <code>layout.html</code>. First of all, we&rsquo;ll add this to <code>post.html</code>:</p>
+<div class="code"><div><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="cp">{%</span> <span class="k">set</span> <span class="nv">css</span> <span class="o">=</span> <span class="nv">item.css</span> <span class="cp">%}</span><span class="x"></span>
+</pre></div>
+</td></tr></table></div></div>
+<p>This will export our css frontmatter, so that we can use it in the layout. Talking about layout,</p>
+<div class="code"><div><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="cp">{%</span> <span class="k">for</span> <span class="nv">sheet</span> <span class="k">in</span> <span class="nv">css</span> <span class="cp">%}</span><span class="x"></span>
+<span class="x">&lt;link rel=&quot;stylesheet&quot; href=&quot;</span><span class="cp">{{</span> <span class="nv">get_asset</span><span class="o">(</span><span class="s1">&#39;css/&#39;</span> <span class="o">+</span> <span class="nv">sheet</span> <span class="o">+</span> <span class="s1">&#39;.css&#39;</span><span class="o">)</span> <span class="cp">}}</span><span class="x">&quot; type=&quot;text/css&quot; media=&quot;screen&quot; /&gt;</span>
+<span class="cp">{%</span> <span class="k">endfor</span> <span class="cp">%}</span><span class="x"></span>
+</pre></div>
+</td></tr></table></div></div>
+<p>This loops over all CSS items (we passed a sequence, remember?), and include the corresponding stylesheet at <code>/assets/css/&lt;item&gt;.css</code>. Something similar can be done for JS, or any other asset you don&rsquo;t want loaded on ever page.</p>
+<h1>Second Method: Almost the same thing</h1>
+<p>I had a chitchat with Anomareh about this, and he suggested modifying config.yml to achieve a similar thing. This is what he came up with:</p>
+<div class="code"><div><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3
+4</pre></div></td><td class="code"><div class="highlight"><pre><span class="l-Scalar-Plain">css</span><span class="p-Indicator">:</span> <span class="p-Indicator">{</span>
+    <span class="s">&#39;red&#39;</span><span class="p-Indicator">:</span> <span class="p-Indicator">[</span><span class="s">&#39;a.css&#39;</span><span class="p-Indicator">],</span>
+    <span class="s">&#39;blue&#39;</span><span class="p-Indicator">:</span> <span class="p-Indicator">[</span><span class="s">&#39;a.css&#39;</span><span class="p-Indicator">,</span> <span class="s">&#39;b.css&#39;</span><span class="p-Indicator">]</span>
+<span class="p-Indicator">}</span>
+</pre></div>
+</td></tr></table></div></div>
+<p>And the <code>layout.html</code> would look like this:</p>
+<div class="code"><div><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="cp">{%</span> <span class="k">for</span> <span class="nv">sheet</span> <span class="k">in</span> <span class="nv">site.css</span><span class="o">[</span><span class="nv">item.css</span><span class="o">]</span> <span class="cp">%}</span><span class="x"> ... </span><span class="cp">{%</span> <span class="k">endfor</span> <span class="cp">%}</span><span class="x"></span>
+</pre></div>
+</td></tr></table></div></div>
+<p>This solution is practical if you want to create &ldquo;sets&rdquo; of stylesheets, which all need to be loaded together. If you want to load single sheets, I do not see an advantage in using this method, it just adds one more file to edit.</p>
+<h1>Third method: Using custom Layouts</h1>
+<p>Something else we came up with, and (at least one of us) very quickly dismissed again, is the usage of a custom layout, depending on the type of post you are wanting to write. This is probably the &ldquo;purest&rdquo; (read: non-mynt-specific) way of accomplishing this task.</p>
+
+<p>While this is also a viable solution to this problem, I&rsquo;m not a big fan of it. Yes, it makes sense when you actually want to use a different <strong>layout</strong>, but I simply want to include the pygments stylesheet only on pages that need it - the layout would stay the same. By using this solution, I would have to duplicate my <code>post.html</code> layout, and use a different <code>layout</code> frontmatter tag. In theory, there is nothing wrong with that, the problem just starts when I decide to update my post layout - I would have to make the same changes to both files. Of course this can be worked around by making use of jinja&rsquo;s child templates, but that would add a clusterfuck of template nesting. If you don&rsquo;t mind these two drawbacks, by all means go for it, but I think it goes against everything mynt stands for - keeping blogging simple. mynt has its powerful frontmatter, so use it!</p>
+
+	</div>
+	
+</article>
+
+		</div>
+
+		<div class="clearfix"></div>
+
+<footer class="wrapper clearfix">
+    <div>
+        <ul id="social">
+						 <li><a href="https://github.com/crshd"><i class="fa fa-github"></i></a></li>
+						 <li><a href="https://twitter.com/#!/cr4shd"><i class="fa fa-twitter"></i></a></li>
+						 <li><a href="http://www.last.fm/user/coffeefreeze"><i class="fa fa-music"></i></a></li>
+						 <li><a href="https://plus.google.com/108913776594552349551"><i class="fa fa-google-plus-square"></i></a></li>
+						
+						
+						 <li><a href="http://stackoverflow.com/users/2669928"><i class="fa fa-stack-overflow"></i></a></li>
+						 <li><a href="http://steamcommunity.com/profiles/76561198081615765"><i class="fa fa-gamepad"></i></a></li>
+        </ul>
+        <p>
+            &copy; 2015 Christian &ldquo;crshd&rdquo; Brassat &ndash; 
+            powered by <a href="http://mynt.mirroredwhite.com/">mynt</a> &ndash;
+            hosted using <a href="http://pages.github.com/">GitHub Pages</a> &ndash;
+            <a href="https://github.com/crshd/io.source">source</a>
+        </p>
+    </div>
+</footer>
+
+		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
+		<script>window.jQuery || document.write('<script src="/assets/js/vendor/jquery-1.10.1.min.js"><\/script>')</script>
+		<script>
+			$(document).ready(function() {
+				$('#bitcoin').hide();
+			});
+		</script>
+
+		<script src="/assets/js/main.js"></script>
+	</body>
+</html>

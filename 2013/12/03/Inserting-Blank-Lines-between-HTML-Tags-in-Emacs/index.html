@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+				<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<meta name="viewport" content="width=device-width">
+		<meta name="author" content="Christian &ldquo;crshd&rdquo; Brassat">
+		<meta name="description" content="Yup, got that.">
+		<meta name="generator" content="mynt v0.3.1">
+
+		<link rel="shortcut icon" href="/assets/images/favicon.ico" type="image/x-icon">
+
+		<link rel="alternate" href="/feed.xml" type="application/atom+xml">
+
+		<link rel="stylesheet" href="/assets/css/normalize.css" type="text/css">
+		<link rel="stylesheet" href="/assets/css/main.css" type="text/css">
+
+		<link rel="stylesheet" href="/assets/css/pygments.css" type="text/css">
+
+		<script src="/assets/js/vendor/modernizr-2.6.2-respond-1.1.0.min.js" type="text/javascript"></script>
+    <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+
+		
+
+		<title>Inserting Blank Lines between HTML Tags in Emacs &ndash; crshd</title>
+
+		
+		<script src="//use.typekit.net/pnj4nyv.js"></script>
+		<script>try{Typekit.load();}catch(e){}</script>
+	</head>
+
+	<body>
+		<!--[if lt IE 7]>
+			<p class="chromeframe">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> or <a href="http://www.google.com/chromeframe/?redirect=true">activate Google Chrome Frame</a> to improve your experience.</p>
+		<![endif]-->
+<header class="wrapper clearfix">
+    <div class="container">
+        <div class="title"></div>
+        <nav>
+						<ul>
+								<li><a href="/">Home</a></li>
+								<li><a href="/Colophon">Colophon</a></li>
+								<li><a href="/feed.xml">Feed</a></li>
+						</ul>
+        </nav>
+    </div>
+</header>
+
+		<div class="main-container clearfix">
+
+<article class="single clearfix">
+	<div class="meta">
+		<p>&#123;&nbsp;Tue, 03. Dec 2013&nbsp;&#125;</p>
+		
+		<ul>
+			
+			<li><a href="/Emacs/">Emacs</a></li>
+			
+		</ul>
+		
+	</div>
+	<div class="content">
+		<h1 class="title">Inserting Blank Lines between HTML Tags in Emacs</h1>
+		<p>I code HTML in Emacs, and <a href="https://github.com/smihica/emmet-mode">Emmet</a> makes it a breeze. Although, there was one thing that bugged me. When I expand <code>div</code>, Emmet gives me</p>
+<div class="code"><div><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="nt">&lt;div&gt;</span>|<span class="nt">&lt;/div&gt;</span>
+</pre></div>
+</td></tr></table></div></div>
+<p>with the cursor stuck right there in the middle. I (and I think I&rsquo;m not alone with that) would prefer</p>
+<div class="code"><div><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1
+2
+3</pre></div></td><td class="code"><div class="highlight"><pre><span class="nt">&lt;div&gt;</span>
+    |
+<span class="nt">&lt;/div&gt;</span>
+</pre></div>
+</td></tr></table></div></div>
+<p>Getting from the one thing to the other is a mess of inserting newlines and moving the point, and indenting.</p>
+<h2>Don&rsquo;t Fear, elisp is here!</h2>
+<p>Until now. This being Emacs, there&rsquo;s a way around this. With the following snippet in my config, everything gets expanded and indented properly when I hit <code>RET</code> between an opening and closing tag.</p>
+<div class="code"><div><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+42
+43
+44
+45</pre></div></td><td class="code"><div class="highlight"><pre><span class="c1">;; redefine newline</span>
+<span class="p">(</span><span class="nf">defun</span> <span class="nv">sgml-before-is-opening-tag</span> <span class="p">()</span>
+  <span class="s">&quot;Check if the tag preceding point is an opening tag.&quot;</span>
+  <span class="p">(</span><span class="nf">save-excursion</span>
+    <span class="p">(</span><span class="k">let </span><span class="p">((</span><span class="nf">pre-tag-position</span> <span class="p">(</span><span class="nf">search-backward</span> <span class="s">&quot;&lt;&quot;</span><span class="p">)))</span>
+      <span class="p">(</span><span class="k">if </span><span class="p">(</span><span class="nf">string=</span> <span class="p">(</span><span class="nf">string</span> <span class="p">(</span><span class="nf">char-after</span> <span class="p">(</span><span class="nb">+ </span><span class="nv">pre-tag-position</span> <span class="mi">1</span><span class="p">)))</span> <span class="s">&quot;/&quot;</span><span class="p">)</span>
+          <span class="nv">nil</span>
+        <span class="nv">t</span><span class="p">))))</span>
+
+<span class="p">(</span><span class="nf">defun</span> <span class="nv">sgml-after-is-closing-tag</span> <span class="p">()</span>
+  <span class="s">&quot;Check if the tag following point is a closing tag.&quot;</span>
+  <span class="p">(</span><span class="nf">save-excursion</span>
+    <span class="p">(</span><span class="k">let </span><span class="p">((</span><span class="nf">post-tag-position</span> <span class="p">(</span><span class="nf">search-forward</span> <span class="s">&quot;&lt;&quot;</span><span class="p">)))</span>
+      <span class="p">(</span><span class="k">if </span><span class="p">(</span><span class="nf">string=</span> <span class="p">(</span><span class="nf">string</span> <span class="p">(</span><span class="nf">char-after</span> <span class="nv">post-tag-position</span><span class="p">))</span> <span class="s">&quot;/&quot;</span><span class="p">)</span>
+          <span class="nv">t</span>
+        <span class="nv">nil</span><span class="p">))))</span>
+
+<span class="p">(</span><span class="nf">defun</span> <span class="nv">sgml-is-between-tags</span> <span class="p">()</span>
+  <span class="s">&quot;Check if point is immediately between two tags (&gt;|&lt;)&quot;</span>
+  <span class="p">(</span><span class="k">let </span><span class="p">((</span><span class="nf">before</span> <span class="p">(</span><span class="nf">string</span> <span class="p">(</span><span class="nf">preceding-char</span><span class="p">)))</span>
+        <span class="p">(</span><span class="nf">after</span>  <span class="p">(</span><span class="nf">string</span> <span class="p">(</span><span class="nf">following-char</span><span class="p">))))</span>
+    <span class="p">(</span><span class="k">if </span><span class="p">(</span><span class="nf">and</span>
+         <span class="p">(</span><span class="nf">string=</span> <span class="nv">before</span> <span class="s">&quot;&gt;&quot;</span><span class="p">)</span>
+         <span class="p">(</span><span class="nf">string=</span> <span class="nv">after</span> <span class="s">&quot;&lt;&quot;</span><span class="p">))</span>
+        <span class="nv">t</span>
+      <span class="nv">nil</span><span class="p">)))</span>
+
+<span class="p">(</span><span class="nf">defun</span> <span class="nv">sgml-newline</span> <span class="p">()</span>
+  <span class="s">&quot;Insert two newlines when point is between opening and closing tags (&gt;|&lt;/)&quot;</span>
+  <span class="p">(</span><span class="nf">interactive</span><span class="p">)</span>
+  <span class="p">(</span><span class="k">if </span><span class="p">(</span><span class="nf">and</span>
+       <span class="p">(</span><span class="nf">sgml-is-between-tags</span><span class="p">)</span>
+       <span class="p">(</span><span class="nf">sgml-before-is-opening-tag</span><span class="p">)</span>
+       <span class="p">(</span><span class="nf">sgml-after-is-closing-tag</span><span class="p">))</span>
+      <span class="p">(</span><span class="nf">progn</span>
+        <span class="p">(</span><span class="nf">newline-and-indent</span><span class="p">)</span>
+        <span class="p">(</span><span class="nf">newline-and-indent</span><span class="p">)</span>
+        <span class="p">(</span><span class="nf">forward-line</span> <span class="mi">-1</span><span class="p">)</span>
+        <span class="p">(</span><span class="nf">indent-according-to-mode</span><span class="p">))</span>
+    <span class="p">(</span><span class="nf">newline-and-indent</span><span class="p">)))</span>
+
+<span class="c1">;; keybindings</span>
+<span class="p">(</span><span class="nf">eval-after-load</span> <span class="s">&quot;sgml-mode&quot;</span>
+  <span class="o">&#39;</span><span class="p">(</span><span class="nf">progn</span>
+     <span class="p">(</span><span class="nf">define-key</span> <span class="nv">sgml-mode-map</span> <span class="p">(</span><span class="nf">kbd</span> <span class="s">&quot;RET&quot;</span><span class="p">)</span> <span class="ss">&#39;sgml-newline</span><span class="p">)))</span>
+</pre></div>
+</td></tr></table></div></div>
+	</div>
+	
+</article>
+
+		</div>
+
+		<div class="clearfix"></div>
+
+<footer class="wrapper clearfix">
+    <div>
+        <ul id="social">
+						 <li><a href="https://github.com/crshd"><i class="fa fa-github"></i></a></li>
+						 <li><a href="https://twitter.com/#!/cr4shd"><i class="fa fa-twitter"></i></a></li>
+						 <li><a href="http://www.last.fm/user/coffeefreeze"><i class="fa fa-music"></i></a></li>
+						 <li><a href="https://plus.google.com/108913776594552349551"><i class="fa fa-google-plus-square"></i></a></li>
+						
+						
+						 <li><a href="http://stackoverflow.com/users/2669928"><i class="fa fa-stack-overflow"></i></a></li>
+						 <li><a href="http://steamcommunity.com/profiles/76561198081615765"><i class="fa fa-gamepad"></i></a></li>
+        </ul>
+        <p>
+            &copy; 2015 Christian &ldquo;crshd&rdquo; Brassat &ndash; 
+            powered by <a href="http://mynt.mirroredwhite.com/">mynt</a> &ndash;
+            hosted using <a href="http://pages.github.com/">GitHub Pages</a> &ndash;
+            <a href="https://github.com/crshd/io.source">source</a>
+        </p>
+    </div>
+</footer>
+
+		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
+		<script>window.jQuery || document.write('<script src="/assets/js/vendor/jquery-1.10.1.min.js"><\/script>')</script>
+		<script>
+			$(document).ready(function() {
+				$('#bitcoin').hide();
+			});
+		</script>
+
+		<script src="/assets/js/main.js"></script>
+	</body>
+</html>

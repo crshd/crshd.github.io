@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+				<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+		<meta name="viewport" content="width=device-width">
+		<meta name="author" content="Christian &ldquo;crshd&rdquo; Brassat">
+		<meta name="description" content="Yup, got that.">
+		<meta name="generator" content="mynt v0.3-dev">
+
+		<link rel="shortcut icon" href="/assets/images/favicon.ico" type="image/x-icon">
+
+		<link rel="alternate" href="/feed.xml" type="application/atom+xml">
+
+		<link rel="stylesheet" href="/assets/css/normalize.css" type="text/css">
+		<link rel="stylesheet" href="/assets/css/main.css" type="text/css">
+
+		<link rel="stylesheet" href="/assets/css/pygments.css" type="text/css">
+
+		<script src="/assets/js/vendor/modernizr-2.6.2-respond-1.1.0.min.js" type="text/javascript"></script>
+    <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+
+		
+
+		<title>Using SSH Keys instead of Passwords &ndash; crshd</title>
+
+		
+	</head>
+
+	<body>
+		<!--[if lt IE 7]>
+			<p class="chromeframe">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> or <a href="http://www.google.com/chromeframe/?redirect=true">activate Google Chrome Frame</a> to improve your experience.</p>
+		<![endif]-->
+<a name="top"></a>
+		<div class="header-container">
+			<header class="wrapper clearfix">
+				<h1 class="title">
+					<!-- crshd &#10097;<span>&#10097; tail -f /dev/brain &raquo; /www</span> -->
+					crshd <i class="fa fa-quote-left"></i> Using SSH Keys instead of Passwords
+				</h1>
+			</header>
+		</div>
+		<nav class="clearfix">
+			<!-- <h1 class="title">crshd</h1> -->
+			<ul>
+				<li><a href="/">Home</a></li>
+				<li><a href="/Colophon">Colophon</a></li>
+				<li>
+					<a href="#">Tags</a>
+					<ul class="tags">
+					
+						<li><a href="/Emacs/">Emacs</a></li>
+					
+						<li><a href="/Atom/">Atom</a></li>
+					
+						<li><a href="/Javascript/">Javascript</a></li>
+					
+						<li><a href="/mynt/">mynt</a></li>
+					
+						<li><a href="/OS-X/">OS X</a></li>
+					
+						<li><a href="/Security/">Security</a></li>
+					
+						<li><a href="/Torrent/">Torrent</a></li>
+					
+						<li><a href="/Userscript/">Userscript</a></li>
+					
+						<li><a href="/Version-Control/">Version Control</a></li>
+					
+						<li><a href="/webdev/">webdev</a></li>
+					
+					</ul>
+				</li>
+				<li><a href="/archives/">Archives</a></li>
+				<li><a href="/feed.xml">Feed</a></li>
+        <li id="to-top"><a href="#top">To Top <i class="fa fa-caret-square-o-up"></i></a></li>
+			</ul>
+		</nav>
+
+		<div class="main-container clearfix">
+			<div class="main wrapper">
+
+<article>
+	<h2 class="subheader">
+		Thursday, September 20, 2012
+		&ndash;
+		
+		<a href="/Security/">Security</a>
+		
+		
+		
+	</h2>
+	
+
+	<div class="content">
+			<p>SSH keys are used to identify yourself to an SSH server, much like using a password. There&#39;s a couple of advantages in using SSH keys instead of typing in your password everytime you connect to a server:</p>
+
+<ul>
+<li>Less typing (for all the lazy people out there - including myself)</li>
+<li>No need to remember passwords (not that I&#39;m saying it&#39;s a <em>good</em> thing to forget passwords)</li>
+<li>The password is never transmitted, so it cannot be intercepted</li>
+<li>SSH keys are a lot harder to brute-force than your standard passwords (like &ldquo;love&rdquo;, &ldquo;sex&rdquo;, the name of your dog, or the birthday of your lover)</li>
+</ul>
+
+<p>For the sake of this lesson, I will be using OpenSSH, because it&#39;s pretty much standard issue with most Unix-like systems, and my user account on anapnea, just because I have one there.</p>
+<h2>Basic Understanding</h2>
+<p>SSH keys always consist of two parts - a <strong>private</strong> key, which will (hopefully) stay with you, and the <strong>public</strong> counterpart - that is the one that will be shared with the server(s) you want to connect to.</p>
+
+<p>When you try to connect to the server, it will use the public key to encrypt a &ldquo;challenge&rdquo;, which will then be send to your computer, and can only be decrypted with your private key. Think of this challenge as the big bearded guy looking through a peep hole, <a href="http://www.youtube.com/watch?v=tzcxruP8mDM">yelling &ldquo;Passwort?&rdquo;</a>, before granting you entry. Only that he&#39;s using some made-up language that only you can understand.</p>
+<h2>Generating a Key Pair</h2>
+<p>A simple key pair can be genrated with a simple command:</p>
+<div class="code"><div><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="nv">$ </span>ssh-keygen -t rsa
+</pre></div>
+</td></tr></table></div></div>
+<p>This will generate a 2048bit RSA key</p>
+
+<p>But we are not going to use that. For this tutorial, we will be using something a bit more custom:</p>
+<div class="code"><div><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="nv">$ </span>ssh-keygen -t ecdsa -b 521 -C <span class="s2">&quot;$(whoami)@$(hostname)-$(date)&quot;</span>;
+</pre></div>
+</td></tr></table></div></div>
+<p>(above command shamelessly ripped from the Archlinux Wiki)</p>
+
+<dl>
+     <dt>-t ecdsa</dt>
+     <dd>ECDSA (Elliptic Curve Digital Signature Algorithm - Don&rsquo;t worry, I&rsquo;m not going to quiz you on that) is the preferred algorithm since OpenSSH 5.7. Believe me, those people know what they are doing, so if they prefer it, it&rsquo;s good enough for me.</dd>
+
+     <dt>-b 521</dt>
+     <dd>We are generating a 521 bit long key. You could increase this value to make the key longer and safer, but keep in mind that a longer key will increase load and take longer while authenticating. ECDSA has equivalent security to RSA/DSA with smaller key sizes, so 521 should be sufficient, unless you work for the CIA.</dd>
+
+     <dt>-C &ldquo;$(whoami)@$(hostname)-$(date)&rdquo;</dt>
+     <dd>This is just a comment string. It&rsquo;s completely unnecessary, but it might help identifying the key later.</dd>
+</dl>
+
+<p>You will be asked where to save the generated keys. The default is <code>~/.ssh</code>, and I would recommend leaving it at that. That is the place where every application will look for it. Changing this basically is asking for trouble down the road.</p>
+
+<p>You will also be asked to enter a passphrase. It can be left blank for convenience, but then the key is saved unencrypted. This is a major security risk. On a single-user system it might be okay, on a multi-user system I would not recommend doing this.</p>
+
+<p>If everything worked, you should something along the lines of this:</p>
+<div class="code"><div><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20</pre></div></td><td class="code"><div class="highlight"><pre>Generating public/private ecdsa key pair.
+Enter file in which to save the key (/home/crshd/.ssh/id_ecdsa):
+Enter passphrase (empty for no passphrase):
+Enter same passphrase again:
+Your identification has been saved in /home/crshd/.ssh/id_ecdsa.
+Your public key has been saved in /home/crshd/.ssh/id_ecdsa.pub.
+The key fingerprint is:
+c3:c3:ec:4e:f9:7a:ff:e5:54:e1:e3:dc:c1:e1:3b:00 crshd@tatooine-Mo 17 Sep 2012 01:31:31 MYT
+The key&#39;s randomart image is:
++--[ECDSA  521]---+
+|                 |
+|                 |
+|           E   o |
+|       +    . + o|
+|        S    . *.|
+|       . +    + *|
+|        +      =+|
+|       o ..    +.|
+|        oo..... .|
++-----------------+
+</pre></div>
+</td></tr></table></div></div>
+<p>And you will have two files in <code>~/.ssh</code>: <code>id_ecdsa</code> and <code>id_ecdsa.pub</code>.</p>
+<h2>Moving the Public Key to the Server</h2>
+<p>There are two methods of moving the key to the server.</p>
+<h3>Traditional Method</h3>
+<p>Transfer your key:</p>
+<div class="code"><div><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="nv">$ </span>scp ~/.ssh/id_ecdsa.pub crshd@anapnea.net:
+</pre></div>
+</td></tr></table></div></div>
+<p><strong>Make sure you copy the public key, not the private one</strong></p>
+
+<p>Hop on to the server:</p>
+<div class="code"><div><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="nv">$ </span>ssh crshd@anapnea.net
+</pre></div>
+</td></tr></table></div></div>
+<p>Create <code>~/.ssh</code> on the server:</p>
+<div class="code"><div><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="nv">$ </span>mkdir ~/.ssh
+</pre></div>
+</td></tr></table></div></div>
+<p>Copy key to authorized keys:</p>
+<div class="code"><div><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="nv">$ </span>cat id_ecdsa.pub &gt;&gt; ~/.ssh/authorized_keys
+</pre></div>
+</td></tr></table></div></div>
+<p>Delete key file:</p>
+<div class="code"><div><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="nv">$ </span>rm id_ecdsa.pub
+</pre></div>
+</td></tr></table></div></div><h3>Simple Method</h3>
+<p>The simple way to transfer the public key is using <code>ssh-copy-id</code>:</p>
+<div class="code"><div><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="nv">$ </span>ssh-copy-id -i ~/.ssh/id_ecdsa.pub crshd@anapnea.net
+</pre></div>
+</td></tr></table></div></div><h2>Securing the authorized_keys file</h2>
+<p>On the server, make sure you set the permission for <code>~/.ssh/authorized_keys</code> to 600, so it is only readable by yourself:</p>
+<div class="code"><div><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre>1</pre></div></td><td class="code"><div class="highlight"><pre><span class="nv">$ </span>chmod 600 ~/.ssh/authorized_keys
+</pre></div>
+</td></tr></table></div></div>
+<hr>
+
+<p>I hope this helped somebody. Happy SSHing!</p>
+
+	</div>
+</article>
+
+			</div>
+		</div>
+
+		<div class="clearfix"></div>
+
+		<div class="footer-container clearfix">
+			<footer class="wrapper clearfix">
+				<ul id="social">
+					 <li><a href="https://github.com/crshd"><i class="fa fa-github"></i></a></li>
+					 <li><a href="https://twitter.com/#!/cr4shd"><i class="fa fa-twitter"></i></a></li>
+					 <li><a href="http://www.last.fm/user/coffeefreeze"><i class="fa fa-music"></i></a></li>
+					 <li><a href="https://plus.google.com/108913776594552349551"><i class="fa fa-google-plus-square"></i></a></li>
+					
+					
+					 <li><a href="http://stackoverflow.com/users/2669928"><i class="fa fa-stack-overflow"></i></a></li>
+					 <li><a href="http://steamcommunity.com/profiles/76561198081615765"><i class="fa fa-gamepad"></i></a></li>
+					<li><a onClick="$('#bitcoin').show();" href="#bitcoin"><i class="fa fa-btc"></i></a></li>
+				</ul>
+				&copy; 2014 Christian &ldquo;crshd&rdquo; Brassat &ndash; 
+				powered by <a href="http://mynt.mirroredwhite.com/">mynt</a> &ndash;
+				hosted using <a href="http://pages.github.com/">GitHub Pages</a> &ndash;
+				<a href="https://github.com/crshd/io.source">source</a>
+				<div id="bitcoin">
+					<a href="bitcoin:18vnsb92iSSBM6GWw1BDjiTYPdo43VYtCf">
+						<img src="/assets/images/qr_coin.png" >
+					</a>
+					<p>18vnsb92iSSBM6GWw1BDjiTYPdo43VYtCf</p>
+				</div>
+			</footer>
+		</div>
+
+		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
+		<script>window.jQuery || document.write('<script src="/assets/js/vendor/jquery-1.10.1.min.js"><\/script>')</script>
+		<script>
+			$(document).ready(function() {
+				$('#bitcoin').hide();
+			});
+		</script>
+
+		<script src="/assets/js/main.js"></script>
+	</body>
+</html>
